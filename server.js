@@ -98,7 +98,7 @@ mongoose.connect(MONGODB_URI, {
 });
 
 // ======================
-// Email Configuration
+// Email Configuration - Using Gmail from Render env
 // ======================
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST || 'smtp.gmail.com',
@@ -383,7 +383,7 @@ const authenticateToken = async (req, res, next) => {
 };
 
 // ======================
-// Email Template Generation Functions - MODIFIED
+// Email Template Generation Functions
 // ======================
 const generateEmailTemplate = (content, trackingPixel = null, subject = 'BitHash Capital') => {
   // REMOVED the default template wrapper - now returns content as-is
@@ -1170,7 +1170,7 @@ async function sendEmailCampaign(campaign) {
           trackingPixel = `${process.env.API_BASE_URL || 'https://tiktok-com-shop.onrender.com'}/track/${campaign._id}/${recipient._id}`;
         }
 
-        // MODIFIED: No template wrapper, just add tracking pixel if needed
+        // No template wrapper, just add tracking pixel if needed
         const emailHtml = generateEmailTemplate(campaign.content, trackingPixel, campaign.subject);
 
         const mailOptions = {
