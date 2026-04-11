@@ -85,11 +85,8 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
 // ======================
 // MongoDB Connection
 // ======================
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://elvismwangike:JFJmHvP4ktikRYDC@cluster0.vm6hrog.mongodb.net/bithash?retryWrites=true&w=majority&appName=Cluster0';
+mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://mekitariansalinacoria8_db_user:PTd4blzgRclmyuV8@cluster0.fvvirw2.mongodb.net/?appName=Cluster0', {
 
-mongoose.connect(MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
 })
 .then(() => console.log('MongoDB connected successfully'))
 .catch(err => {
@@ -100,18 +97,35 @@ mongoose.connect(MONGODB_URI, {
 // ======================
 // Email Configuration - Using Gmail from Render env
 // ======================
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-  port: process.env.EMAIL_PORT || 587,
-  secure: process.env.EMAIL_SECURE === 'true',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  },
-  tls: {
-    rejectUnauthorized: false
-  }
-});
+const createTransporter = (user, pass) => {
+  return nodemailer.createTransport({
+    host: process.env.EMAIL_HOST,
+    port: process.env.EMAIL_PORT,
+    secure: process.env.EMAIL_SECURE === 'true',
+    auth: {
+      user: user,
+      pass: pass
+    },
+    tls: {
+      rejectUnauthorized: false
+    },
+    pool: true,
+    maxConnections: 5,
+    maxMessages: 100
+  });
+};
+
+const infoTransporter = createTransporter(
+  process.env.EMAIL_INFO_USER,
+  process.env.EMAIL_INFO_PASS
+);
+
+const supportTransporter = createTransporter(
+  process.env.EMAIL_SUPPORT_USER,
+  process.env.EMAIL_SUPPORT_PASS
+);
+
+const transporter = infoTransporter;
 
 // Verify email configuration
 transporter.verify(function(error, success) {
