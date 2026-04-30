@@ -21,7 +21,7 @@ const corsOptions = {
   origin: function (origin, callback) {
     const allowedOrigins = [
       'https://citation-training-academy.vercel.app',
-      'https://citation-training-academy-1b8h.vercel.app',
+      'https://bithash-messaging-backend-o294.onrender.com',
       'http://localhost:3000',
       'http://127.0.0.1:3000',
       'https://bithashcapital.com',
