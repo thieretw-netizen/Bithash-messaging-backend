@@ -107,37 +107,30 @@ const transporter = infoTransporter;
 transporter.verify((error, success) => {
   if (error) {
     console.error('========================================');
-    console.error('EMAIL CONFIGURATION ERROR:');
-    console.error('Error details:', error.message);
+    console.error('EMAIL CONFIGURATION ERROR:', error.message);
     console.error('========================================');
   } else {
     console.log('========================================');
     console.log('Email configuration verified successfully!');
-    console.log('INFO Transporter is ready to send messages');
     console.log('Sender address: info@bithashcapital.live');
     console.log('========================================');
   }
 });
 
 // ======================
-// PROFESSIONAL EMAIL WRAPPER - PERFECTLY FITTED HEADER, BODY, FOOTER
-// White background body that seamlessly connects header and footer
+// PROFESSIONAL EMAIL TEMPLATE - SEAMLESS HEADER, BODY, FOOTER
+// NO BORDERS - Everything flows inline perfectly
 // ======================
 const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => {
   const date = new Date();
   const formattedDate = date.toLocaleString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    timeZoneName: 'short'
+    year: 'numeric', month: 'long', day: 'numeric',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', timeZoneName: 'short'
   });
 
-  // Add tracking pixel if enabled
+  // Add tracking pixel if enabled (invisible 1x1 image)
   const contentWithTracking = trackingPixel
-    ? `${bodyContent}<img src="${trackingPixel}" width="1" height="1" alt="" style="display:none;">`
+    ? `${bodyContent}<img src="${trackingPixel}" width="1" height="1" alt="" style="display:none; width:1px; height:1px;">`
     : bodyContent;
 
   return `<!DOCTYPE html>
@@ -148,7 +141,6 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>${subject} | ₿itHash Capital</title>
   <style>
-    /* Reset styles for email clients */
     * {
       margin: 0;
       padding: 0;
@@ -157,43 +149,39 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
     
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      background-color: #E2E8F0;
+      background-color: #E8EDF2;
       margin: 0;
       padding: 30px 0;
       line-height: 1.5;
     }
     
-    /* Main email container */
-    .email-wrapper {
-      max-width: 600px;
+    /* Main container - single seamless card */
+    .email-card {
+      max-width: 580px;
       width: 100%;
       margin: 0 auto;
       background-color: #FFFFFF;
-      border-radius: 20px;
+      border-radius: 0;
       overflow: hidden;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.1);
     }
     
     /* ========================================= */
-    /* HEADER SECTION - Dark gradient background */
+    /* HEADER - Dark gradient, NO BORDER BOTTOM */
     /* ========================================= */
-    .email-header {
+    .header {
       background: linear-gradient(135deg, #0B0E11 0%, #1A1F2E 100%);
       text-align: center;
-      padding: 36px 24px 32px 24px;
-      border-bottom: 1px solid rgba(247, 166, 0, 0.15);
+      padding: 40px 24px 36px 24px;
     }
     
-    .logo-wrapper {
-      margin-bottom: 16px;
-    }
-    
-    .logo-img {
+    .logo {
       width: 70px;
       height: 70px;
-      display: inline-block;
+      margin: 0 auto 16px auto;
+      display: block;
       border-radius: 50%;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
     }
     
     .company-name {
@@ -201,26 +189,26 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
       font-weight: 800;
       color: #FFFFFF;
       letter-spacing: 1px;
-      margin: 12px 0 8px 0;
+      margin: 0 0 8px 0;
     }
     
-    .bitcoin-icon {
+    .bitcoin-gold {
       color: #F7A600;
-      display: inline-block;
     }
     
-    .company-tagline {
+    .tagline {
       font-size: 14px;
       color: #B7BDC6;
       font-style: italic;
       margin: 0;
+      font-weight: 400;
     }
     
     /* ========================================= */
-    /* BODY SECTION - Clean white background */
-    /* Admin content appears here */
+    /* BODY - Pure White Background, NO BORDERS */
+    /* Directly flows from header to footer      */
     /* ========================================= */
-    .email-body {
+    .body-content {
       background-color: #FFFFFF;
       padding: 40px 32px;
       color: #1E293B;
@@ -228,75 +216,90 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
       line-height: 1.6;
     }
     
-    .email-body p {
+    .body-content p {
       margin-bottom: 16px;
     }
     
-    .email-body h1 {
-      font-size: 28px;
+    .body-content h1 {
+      font-size: 26px;
       color: #0B0E11;
       margin-bottom: 20px;
       font-weight: 700;
     }
     
-    .email-body h2 {
-      font-size: 24px;
+    .body-content h2 {
+      font-size: 22px;
       color: #0B0E11;
       margin-bottom: 16px;
       font-weight: 600;
     }
     
-    .email-body h3 {
-      font-size: 20px;
+    .body-content h3 {
+      font-size: 18px;
       color: #0B0E11;
       margin-bottom: 14px;
       font-weight: 600;
     }
     
-    .email-body a {
+    .body-content a {
       color: #F7A600;
       text-decoration: none;
     }
     
-    .email-body a:hover {
+    .body-content a:hover {
       text-decoration: underline;
     }
     
-    .email-body ul, .email-body ol {
+    .body-content ul, .body-content ol {
       margin: 16px 0;
       padding-left: 24px;
     }
     
-    .email-body li {
+    .body-content li {
       margin-bottom: 8px;
     }
     
-    .email-body table {
+    .body-content table {
       width: 100%;
       border-collapse: collapse;
       margin: 16px 0;
     }
     
-    .email-body th,
-    .email-body td {
+    .body-content th,
+    .body-content td {
       padding: 12px;
       border: 1px solid #E2E8F0;
       text-align: left;
     }
     
-    .email-body th {
+    .body-content th {
       background-color: #F8FAFC;
       font-weight: 600;
     }
     
+    .body-content .btn-link {
+      display: inline-block;
+      background-color: #F7A600;
+      color: #0B0E11;
+      padding: 12px 28px;
+      border-radius: 40px;
+      text-decoration: none;
+      font-weight: 600;
+      margin: 16px 0;
+    }
+    
+    .body-content .btn-link:hover {
+      background-color: #E09D00;
+    }
+    
     /* ========================================= */
-    /* FOOTER SECTION - Dark background */
+    /* FOOTER - Dark background, NO BORDER TOP   */
+    /* Direct continuation from body             */
     /* ========================================= */
-    .email-footer {
+    .footer {
       background-color: #0B0E11;
       text-align: center;
-      padding: 28px 24px;
-      border-top: 1px solid #1E2329;
+      padding: 32px 24px;
     }
     
     .footer-copyright {
@@ -320,11 +323,9 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
       text-decoration: none;
       font-size: 12px;
       margin: 0 10px;
-      transition: opacity 0.2s ease;
     }
     
     .footer-links a:hover {
-      opacity: 0.8;
       text-decoration: underline;
     }
     
@@ -333,39 +334,49 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
       font-size: 12px;
     }
     
-    /* Timestamp below footer */
-    .email-timestamp {
+    /* Timestamp - outside the card, subtle */
+    .timestamp {
       text-align: center;
       margin-top: 20px;
-      padding-top: 16px;
       font-size: 10px;
       color: #94A3B8;
-      border-top: 1px solid #E2E8F0;
     }
     
     /* ========================================= */
-    /* RESPONSIVE DESIGN */
+    /* RESPONSIVE DESIGN                         */
     /* ========================================= */
     @media only screen and (max-width: 600px) {
       body {
         padding: 15px 0;
       }
       
-      .email-body {
+      .header {
+        padding: 32px 20px 28px 20px;
+      }
+      
+      .body-content {
         padding: 28px 20px;
       }
       
-      .email-header {
-        padding: 28px 20px 24px 20px;
+      .footer {
+        padding: 28px 20px;
+      }
+      
+      .logo {
+        width: 60px;
+        height: 60px;
       }
       
       .company-name {
         font-size: 28px;
       }
       
-      .logo-img {
-        width: 60px;
-        height: 60px;
+      .body-content h1 {
+        font-size: 24px;
+      }
+      
+      .body-content h2 {
+        font-size: 20px;
       }
       
       .footer-links a {
@@ -375,56 +386,57 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
     }
     
     @media only screen and (max-width: 480px) {
-      .email-body {
+      .header {
+        padding: 28px 16px 24px 16px;
+      }
+      
+      .body-content {
         padding: 24px 16px;
+      }
+      
+      .footer {
+        padding: 24px 16px;
+      }
+      
+      .logo {
+        width: 55px;
+        height: 55px;
       }
       
       .company-name {
         font-size: 24px;
       }
       
-      .logo-img {
-        width: 55px;
-        height: 55px;
+      .body-content h1 {
+        font-size: 22px;
       }
       
-      .email-body h1 {
-        font-size: 24px;
-      }
-      
-      .email-body h2 {
-        font-size: 20px;
+      .body-content {
+        font-size: 14px;
       }
     }
   </style>
 </head>
 <body>
-  <div class="email-wrapper">
-    <!-- ========================================= -->
-    <!-- HEADER: Dark gradient with logo, name, tagline -->
-    <!-- ========================================= -->
-    <div class="email-header">
-      <div class="logo-wrapper">
-        <img class="logo-img" src="https://media.bithashcapital.live/ChatGPT%20Image%20Mar%2029%2C%202026%2C%2004_52_02%20PM.png" alt="₿itHash Capital Logo">
-      </div>
+  <!-- SINGLE SEAMLESS EMAIL CARD - NO BORDERS ANYWHERE -->
+  <div class="email-card">
+    
+    <!-- HEADER SECTION - Dark gradient, flows directly to body -->
+    <div class="header">
+      <img class="logo" src="https://media.bithashcapital.live/ChatGPT%20Image%20Mar%2029%2C%202026%2C%2004_52_02%20PM.png" alt="₿itHash Capital">
       <h1 class="company-name">
-        <span class="bitcoin-icon">₿</span>itHash
+        <span class="bitcoin-gold">₿</span>itHash
       </h1>
-      <p class="company-tagline"><i>Where Your Financial Goals Become Reality</i></p>
+      <p class="tagline"><i>Where Your Financial Goals Become Reality</i></p>
     </div>
     
-    <!-- ========================================= -->
-    <!-- BODY: Clean white background -->
-    <!-- Admin's email content appears here -->
-    <!-- ========================================= -->
-    <div class="email-body">
+    <!-- BODY SECTION - Pure white background, NO BORDERS, flows seamlessly -->
+    <div class="body-content">
       ${contentWithTracking}
     </div>
     
-    <!-- ========================================= -->
-    <!-- FOOTER: Dark background with legal info -->
-    <!-- ========================================= -->
-    <div class="email-footer">
+    <!-- FOOTER SECTION - Dark background, NO BORDERS, direct continuation -->
+    <div class="footer">
       <p class="footer-copyright">&copy; ${new Date().getFullYear()} ₿itHash Capital. All rights reserved.</p>
       <p class="footer-address">800 Plant St, Wilmington, DE 19801, United States</p>
       <div class="footer-links">
@@ -433,10 +445,11 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
         <a href="https://www.bithashcapital.live">www.bithashcapital.live</a>
       </div>
     </div>
+    
   </div>
   
-  <!-- Timestamp outside wrapper -->
-  <div class="email-timestamp">
+  <!-- Subtle timestamp below the card -->
+  <div class="timestamp">
     📧 This email was sent on ${formattedDate}
   </div>
 </body>
@@ -481,11 +494,8 @@ const adminUserSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   }
-}, {
-  timestamps: true
-});
+}, { timestamps: true });
 
-// Hash password before saving
 adminUserSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
   this.password = await bcrypt.hash(this.password, 12);
@@ -494,174 +504,62 @@ adminUserSchema.pre('save', async function(next) {
 
 // Investor Schema
 const investorSchema = new mongoose.Schema({
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    lowercase: true,
-    validate: [validator.isEmail, 'Please provide a valid email']
-  },
-  name: {
-    type: String,
-    required: true,
-    trim: true,
-    maxlength: 100
-  },
-  phone: {
-    type: String,
-    trim: true
-  },
-  country: {
-    type: String,
-    trim: true
-  },
-  joinDate: {
-    type: Date,
-    default: Date.now
-  },
-  tier: {
-    type: String,
-    default: 'Standard',
-    enum: ['Standard', 'Premium', 'VIP']
-  },
-  status: {
-    type: String,
-    default: 'active',
-    enum: ['active', 'inactive', 'new']
-  },
-  totalInvested: {
-    type: Number,
-    default: 0
-  },
+  email: { type: String, required: true, unique: true, lowercase: true, validate: [validator.isEmail, 'Please provide a valid email'] },
+  name: { type: String, required: true, trim: true, maxlength: 100 },
+  phone: { type: String, trim: true },
+  country: { type: String, trim: true },
+  joinDate: { type: Date, default: Date.now },
+  tier: { type: String, default: 'Standard', enum: ['Standard', 'Premium', 'VIP'] },
+  status: { type: String, default: 'active', enum: ['active', 'inactive', 'new'] },
+  totalInvested: { type: Number, default: 0 },
   lastContact: Date,
   notes: String,
   tags: [String]
-}, {
-  timestamps: true
-});
+}, { timestamps: true });
 
 // Email Template Schema
 const emailTemplateSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    trim: true,
-    maxlength: 100
-  },
-  subject: {
-    type: String,
-    required: true,
-    trim: true,
-    maxlength: 200
-  },
-  content: {
-    type: String,
-    required: true
-  },
-  category: {
-    type: String,
-    default: 'general',
-    enum: ['general', 'promotional', 'update', 'alert']
-  },
-  isActive: {
-    type: Boolean,
-    default: true
-  },
-  usedCount: {
-    type: Number,
-    default: 0
-  },
+  name: { type: String, required: true, trim: true, maxlength: 100 },
+  subject: { type: String, required: true, trim: true, maxlength: 200 },
+  content: { type: String, required: true },
+  category: { type: String, default: 'general', enum: ['general', 'promotional', 'update', 'alert'] },
+  isActive: { type: Boolean, default: true },
+  usedCount: { type: Number, default: 0 },
   lastUsed: Date
-}, {
-  timestamps: true
-});
+}, { timestamps: true });
 
 // Email Campaign Schema
 const emailCampaignSchema = new mongoose.Schema({
-  subject: {
-    type: String,
-    required: true,
-    trim: true,
-    maxlength: 200
-  },
-  content: {
-    type: String,
-    required: true
-  },
+  subject: { type: String, required: true, trim: true, maxlength: 200 },
+  content: { type: String, required: true },
   recipients: [{
-    investorId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Investor'
-    },
+    investorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Investor' },
     email: String,
     name: String,
-    status: {
-      type: String,
-      default: 'sent',
-      enum: ['sent', 'delivered', 'opened', 'failed']
-    },
+    status: { type: String, default: 'sent', enum: ['sent', 'delivered', 'opened', 'failed'] },
     openedAt: Date,
     error: String
   }],
-  sentBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'AdminUser',
-    required: true
-  },
-  sentAt: {
-    type: Date,
-    default: Date.now
-  },
+  sentBy: { type: mongoose.Schema.Types.ObjectId, ref: 'AdminUser', required: true },
+  sentAt: { type: Date, default: Date.now },
   scheduledFor: Date,
-  enableTracking: {
-    type: Boolean,
-    default: true
-  },
-  openCount: {
-    type: Number,
-    default: 0
-  },
-  status: {
-    type: String,
-    default: 'draft',
-    enum: ['draft', 'scheduled', 'sent', 'failed']
-  },
-  templateId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'EmailTemplate'
-  },
-  metadata: {
-    ipAddress: String,
-    userAgent: String
-  }
-}, {
-  timestamps: true
-});
+  enableTracking: { type: Boolean, default: true },
+  openCount: { type: Number, default: 0 },
+  status: { type: String, default: 'draft', enum: ['draft', 'scheduled', 'sent', 'failed'] },
+  templateId: { type: mongoose.Schema.Types.ObjectId, ref: 'EmailTemplate' },
+  metadata: { ipAddress: String, userAgent: String }
+}, { timestamps: true });
 
 // Tracking Pixel Schema
 const trackingPixelSchema = new mongoose.Schema({
-  campaignId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'EmailCampaign',
-    required: true
-  },
-  recipientId: {
-    type: mongoose.Schema.Types.ObjectId,
-    required: true
-  },
-  openedAt: {
-    type: Date,
-    default: Date.now
-  },
+  campaignId: { type: mongoose.Schema.Types.ObjectId, ref: 'EmailCampaign', required: true },
+  recipientId: { type: mongoose.Schema.Types.ObjectId, required: true },
+  openedAt: { type: Date, default: Date.now },
   ipAddress: String,
   userAgent: String
-}, {
-  timestamps: true
-});
+}, { timestamps: true });
 
-// ======================
 // Models
-// ======================
 const AdminUser = mongoose.model('AdminUser', adminUserSchema);
 const Investor = mongoose.model('Investor', investorSchema);
 const EmailTemplate = mongoose.model('EmailTemplate', emailTemplateSchema);
@@ -675,31 +573,18 @@ const authenticateToken = async (req, res, next) => {
   try {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
-
     if (!token) {
-      return res.status(401).json({
-        status: 'error',
-        message: 'Access token required'
-      });
+      return res.status(401).json({ status: 'error', message: 'Access token required' });
     }
-
     const decoded = jwt.verify(token, JWT_SECRET);
     const user = await AdminUser.findById(decoded.id).select('-password');
-
     if (!user || !user.isActive) {
-      return res.status(401).json({
-        status: 'error',
-        message: 'User not found or inactive'
-      });
+      return res.status(401).json({ status: 'error', message: 'User not found or inactive' });
     }
-
     req.user = user;
     next();
   } catch (error) {
-    return res.status(403).json({
-      status: 'error',
-      message: 'Invalid or expired token'
-    });
+    return res.status(403).json({ status: 'error', message: 'Invalid or expired token' });
   }
 };
 
@@ -709,75 +594,31 @@ const authenticateToken = async (req, res, next) => {
 
 // Health Check
 app.get('/health', (req, res) => {
-  res.json({
-    status: 'success',
-    message: 'Server is running smoothly',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime()
-  });
+  res.json({ status: 'success', message: 'Server is running smoothly', timestamp: new Date().toISOString(), uptime: process.uptime() });
 });
 
 // Admin Login
 app.post('/admin/login', async (req, res) => {
   try {
-    console.log('Login attempt received for user:', req.body.username);
-
     const { username, password } = req.body;
-
     if (!username || !password) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Username and password are required'
-      });
+      return res.status(400).json({ status: 'error', message: 'Username and password are required' });
     }
-
     const user = await AdminUser.findOne({ username, isActive: true });
     if (!user) {
-      console.log('User not found:', username);
-      return res.status(401).json({
-        status: 'error',
-        message: 'Invalid credentials'
-      });
+      return res.status(401).json({ status: 'error', message: 'Invalid credentials' });
     }
-
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      console.log('Invalid password for user:', username);
-      return res.status(401).json({
-        status: 'error',
-        message: 'Invalid credentials'
-      });
+      return res.status(401).json({ status: 'error', message: 'Invalid credentials' });
     }
-
     user.lastLogin = new Date();
     await user.save();
-
-    const token = jwt.sign(
-      { id: user._id, username: user.username, role: user.role },
-      JWT_SECRET,
-      { expiresIn: JWT_EXPIRES_IN }
-    );
-
-    console.log('Login successful for user:', username);
-
-    res.json({
-      status: 'success',
-      message: 'Login successful',
-      token,
-      user: {
-        id: user._id,
-        username: user.username,
-        name: user.name,
-        role: user.role,
-        lastLogin: user.lastLogin
-      }
-    });
+    const token = jwt.sign({ id: user._id, username: user.username, role: user.role }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+    res.json({ status: 'success', message: 'Login successful', token, user: { id: user._id, username: user.username, name: user.name, role: user.role, lastLogin: user.lastLogin } });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Internal server error during login'
-    });
+    res.status(500).json({ status: 'error', message: 'Internal server error during login' });
   }
 });
 
@@ -786,37 +627,17 @@ app.get('/admin/stats', authenticateToken, async (req, res) => {
   try {
     const totalInvestors = await Investor.countDocuments({ status: 'active' });
     const emailsSent = await EmailCampaign.countDocuments({ status: 'sent' });
-
     const emailCampaigns = await EmailCampaign.find({ status: 'sent' });
-    let totalRecipients = 0;
-    let totalOpens = 0;
-
+    let totalRecipients = 0, totalOpens = 0;
     emailCampaigns.forEach(campaign => {
       totalRecipients += campaign.recipients.length;
       totalOpens += campaign.openCount;
     });
-
     const openRate = totalRecipients > 0 ? (totalOpens / totalRecipients * 100).toFixed(1) : 0;
-
-    res.json({
-      status: 'success',
-      data: {
-        totalInvestors,
-        emailsSent,
-        openRate: parseFloat(openRate),
-        lastActivity: new Date().toISOString(),
-        investorTrend: 2.5,
-        emailTrend: 1.8,
-        openTrend: -0.5,
-        activityTime: 'Just now'
-      }
-    });
+    res.json({ status: 'success', data: { totalInvestors, emailsSent, openRate: parseFloat(openRate), lastActivity: new Date().toISOString(), investorTrend: 2.5, emailTrend: 1.8, openTrend: -0.5, activityTime: 'Just now' } });
   } catch (error) {
     console.error('Stats error:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Failed to load statistics'
-    });
+    res.status(500).json({ status: 'error', message: 'Failed to load statistics' });
   }
 });
 
@@ -825,188 +646,84 @@ app.get('/admin/investors', authenticateToken, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
     const search = req.query.search || '';
     const filter = req.query.filter || '';
-
-    const skip = (page - 1) * limit;
-
     let query = {};
-    if (search) {
-      query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } }
-      ];
-    }
-
-    if (filter && filter !== 'all') {
-      query.status = filter;
-    }
-
-    const investors = await Investor.find(query)
-      .sort({ joinDate: -1 })
-      .skip(skip)
-      .limit(limit)
-      .select('-__v');
-
+    if (search) query.$or = [{ name: { $regex: search, $options: 'i' } }, { email: { $regex: search, $options: 'i' } }];
+    if (filter && filter !== 'all') query.status = filter;
+    const investors = await Investor.find(query).sort({ joinDate: -1 }).skip(skip).limit(limit).select('-__v');
     const totalCount = await Investor.countDocuments(query);
     const totalPages = Math.ceil(totalCount / limit);
-
-    res.json({
-      status: 'success',
-      data: {
-        investors,
-        totalCount,
-        totalPages,
-        currentPage: page
-      }
-    });
+    res.json({ status: 'success', data: { investors, totalCount, totalPages, currentPage: page } });
   } catch (error) {
     console.error('Investors error:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Failed to load investors'
-    });
+    res.status(500).json({ status: 'error', message: 'Failed to load investors' });
   }
 });
 
 // Get all investors for selection
 app.get('/admin/investors/all', authenticateToken, async (req, res) => {
   try {
-    const investors = await Investor.find({ status: 'active' })
-      .select('name email')
-      .sort({ name: 1 });
-
-    res.json({
-      status: 'success',
-      data: investors
-    });
+    const investors = await Investor.find({ status: 'active' }).select('name email').sort({ name: 1 });
+    res.json({ status: 'success', data: investors });
   } catch (error) {
     console.error('Get all investors error:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Failed to load investors'
-    });
+    res.status(500).json({ status: 'error', message: 'Failed to load investors' });
   }
 });
 
 // Send Email Campaign
 app.post('/admin/send-email', authenticateToken, async (req, res) => {
   try {
-    const {
-      recipients,
-      subject,
-      content,
-      enableTracking = true,
-      scheduleEmail = false,
-      scheduleDate = null,
-      saveAsTemplate = false,
-      templateName = null,
-      templateId = null
-    } = req.body;
-
+    const { recipients, subject, content, enableTracking = true, scheduleEmail = false, scheduleDate = null, saveAsTemplate = false, templateName = null, templateId = null } = req.body;
     if (!subject || !content) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Subject and content are required'
-      });
+      return res.status(400).json({ status: 'error', message: 'Subject and content are required' });
     }
-
     let recipientInvestors = [];
-
     if (Array.isArray(recipients) && recipients.length > 0) {
       if (typeof recipients[0] === 'string' && recipients[0].includes('@')) {
         recipientInvestors = recipients.map(email => ({ email, name: email }));
       } else {
-        recipientInvestors = await Investor.find({
-          _id: { $in: recipients },
-          status: 'active'
-        });
+        recipientInvestors = await Investor.find({ _id: { $in: recipients }, status: 'active' });
       }
     } else {
       recipientInvestors = await Investor.find({ status: 'active' });
     }
-
     if (recipientInvestors.length === 0) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'No valid recipients found'
-      });
+      return res.status(400).json({ status: 'error', message: 'No valid recipients found' });
     }
-
     const campaign = new EmailCampaign({
-      subject,
-      content,
-      recipients: recipientInvestors.map(inv => ({
-        investorId: inv._id || null,
-        email: inv.email,
-        name: inv.name || inv.email,
-        status: 'sent'
-      })),
-      sentBy: req.user._id,
-      enableTracking,
-      status: scheduleEmail ? 'scheduled' : 'sent',
-      scheduledFor: scheduleEmail ? new Date(scheduleDate) : null,
-      templateId: templateId || null
+      subject, content,
+      recipients: recipientInvestors.map(inv => ({ investorId: inv._id || null, email: inv.email, name: inv.name || inv.email, status: 'sent' })),
+      sentBy: req.user._id, enableTracking, status: scheduleEmail ? 'scheduled' : 'sent',
+      scheduledFor: scheduleEmail ? new Date(scheduleDate) : null, templateId: templateId || null
     });
-
     await campaign.save();
-
     if (saveAsTemplate && templateName) {
-      const template = new EmailTemplate({
-        name: templateName,
-        subject,
-        content,
-        category: 'general'
-      });
+      const template = new EmailTemplate({ name: templateName, subject, content, category: 'general' });
       await template.save();
     }
-
     if (!scheduleEmail) {
       await sendEmailCampaign(campaign);
     }
-
-    res.json({
-      status: 'success',
-      message: `Email campaign created successfully. ${recipientInvestors.length} recipients.`,
-      data: {
-        campaignId: campaign._id,
-        recipientCount: recipientInvestors.length,
-        scheduled: scheduleEmail
-      }
-    });
+    res.json({ status: 'success', message: `Email campaign created successfully. ${recipientInvestors.length} recipients.`, data: { campaignId: campaign._id, recipientCount: recipientInvestors.length, scheduled: scheduleEmail } });
   } catch (error) {
     console.error('Send email error:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Failed to send email campaign'
-    });
+    res.status(500).json({ status: 'error', message: 'Failed to send email campaign' });
   }
 });
 
 // Upload Excel and Send Emails
 app.post('/admin/send-bulk-email', authenticateToken, async (req, res) => {
   try {
-    const {
-      excelData,
-      subject,
-      content,
-      enableTracking = true
-    } = req.body;
-
+    const { excelData, subject, content, enableTracking = true } = req.body;
     if (!subject || !content) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Subject and content are required'
-      });
+      return res.status(400).json({ status: 'error', message: 'Subject and content are required' });
     }
-
     if (!excelData || !Array.isArray(excelData)) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Valid Excel data is required'
-      });
+      return res.status(400).json({ status: 'error', message: 'Valid Excel data is required' });
     }
-
     const emails = [];
     excelData.forEach(row => {
       for (let key in row) {
@@ -1016,46 +733,21 @@ app.post('/admin/send-bulk-email', authenticateToken, async (req, res) => {
         }
       }
     });
-
     if (emails.length === 0) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'No valid email addresses found in the Excel file'
-      });
+      return res.status(400).json({ status: 'error', message: 'No valid email addresses found in the Excel file' });
     }
-
     const recipientInvestors = emails.map(email => ({ email, name: email }));
-
     const campaign = new EmailCampaign({
-      subject,
-      content,
-      recipients: recipientInvestors.map(inv => ({
-        email: inv.email,
-        name: inv.name || inv.email,
-        status: 'sent'
-      })),
-      sentBy: req.user._id,
-      enableTracking,
-      status: 'sent'
+      subject, content,
+      recipients: recipientInvestors.map(inv => ({ email: inv.email, name: inv.name || inv.email, status: 'sent' })),
+      sentBy: req.user._id, enableTracking, status: 'sent'
     });
-
     await campaign.save();
     await sendEmailCampaign(campaign);
-
-    res.json({
-      status: 'success',
-      message: `Bulk email campaign created successfully. ${recipientInvestors.length} recipients.`,
-      data: {
-        campaignId: campaign._id,
-        recipientCount: recipientInvestors.length
-      }
-    });
+    res.json({ status: 'success', message: `Bulk email campaign created successfully. ${recipientInvestors.length} recipients.`, data: { campaignId: campaign._id, recipientCount: recipientInvestors.length } });
   } catch (error) {
     console.error('Send bulk email error:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Failed to send bulk email campaign'
-    });
+    res.status(500).json({ status: 'error', message: 'Failed to send bulk email campaign' });
   }
 });
 
@@ -1064,99 +756,43 @@ app.get('/admin/emails', authenticateToken, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
     const search = req.query.search || '';
     const filter = req.query.filter || '';
-
-    const skip = (page - 1) * limit;
-
     let query = {};
-    if (search) {
-      query.subject = { $regex: search, $options: 'i' };
-    }
-
-    if (filter && filter !== 'all') {
-      query.status = filter;
-    }
-
-    const emails = await EmailCampaign.find(query)
-      .populate('sentBy', 'name username')
-      .sort({ sentAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .select('-content -recipients');
-
+    if (search) query.subject = { $regex: search, $options: 'i' };
+    if (filter && filter !== 'all') query.status = filter;
+    const emails = await EmailCampaign.find(query).populate('sentBy', 'name username').sort({ sentAt: -1 }).skip(skip).limit(limit).select('-content -recipients');
     const totalCount = await EmailCampaign.countDocuments(query);
     const totalPages = Math.ceil(totalCount / limit);
-
     const emailsWithStats = emails.map(email => ({
-      id: email._id,
-      subject: email.subject,
-      recipientCount: email.recipients ? email.recipients.length : 0,
-      sentDate: email.sentAt,
-      openRate: email.recipients && email.recipients.length > 0 ?
-        ((email.openCount / email.recipients.length) * 100).toFixed(1) : 0,
-      status: email.status,
-      sentBy: email.sentBy?.name || 'System'
+      id: email._id, subject: email.subject, recipientCount: email.recipients ? email.recipients.length : 0,
+      sentDate: email.sentAt, openRate: email.recipients && email.recipients.length > 0 ? ((email.openCount / email.recipients.length) * 100).toFixed(1) : 0,
+      status: email.status, sentBy: email.sentBy?.name || 'System'
     }));
-
-    res.json({
-      status: 'success',
-      data: {
-        emails: emailsWithStats,
-        totalCount,
-        totalPages,
-        currentPage: page
-      }
-    });
+    res.json({ status: 'success', data: { emails: emailsWithStats, totalCount, totalPages, currentPage: page } });
   } catch (error) {
     console.error('Email history error:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Failed to load email history'
-    });
+    res.status(500).json({ status: 'error', message: 'Failed to load email history' });
   }
 });
 
-// Email Templates Management
+// Templates Management
 app.get('/admin/templates', authenticateToken, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
-    const search = req.query.search || '';
-
     const skip = (page - 1) * limit;
-
+    const search = req.query.search || '';
     let query = { isActive: true };
-    if (search) {
-      query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { subject: { $regex: search, $options: 'i' } }
-      ];
-    }
-
-    const templates = await EmailTemplate.find(query)
-      .sort({ updatedAt: -1 })
-      .skip(skip)
-      .limit(limit);
-
+    if (search) query.$or = [{ name: { $regex: search, $options: 'i' } }, { subject: { $regex: search, $options: 'i' } }];
+    const templates = await EmailTemplate.find(query).sort({ updatedAt: -1 }).skip(skip).limit(limit);
     const totalCount = await EmailTemplate.countDocuments(query);
     const totalPages = Math.ceil(totalCount / limit);
-
-    res.json({
-      status: 'success',
-      data: {
-        templates,
-        totalCount,
-        totalPages,
-        currentPage: page
-      }
-    });
+    res.json({ status: 'success', data: { templates, totalCount, totalPages, currentPage: page } });
   } catch (error) {
     console.error('Templates error:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Failed to load templates'
-    });
+    res.status(500).json({ status: 'error', message: 'Failed to load templates' });
   }
 });
 
@@ -1164,25 +800,12 @@ app.get('/admin/templates', authenticateToken, async (req, res) => {
 app.get('/admin/templates/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-
     const template = await EmailTemplate.findById(id);
-    if (!template) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Template not found'
-      });
-    }
-
-    res.json({
-      status: 'success',
-      data: { template }
-    });
+    if (!template) return res.status(404).json({ status: 'error', message: 'Template not found' });
+    res.json({ status: 'success', data: { template } });
   } catch (error) {
     console.error('Get template error:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Failed to load template'
-    });
+    res.status(500).json({ status: 'error', message: 'Failed to load template' });
   }
 });
 
@@ -1190,34 +813,15 @@ app.get('/admin/templates/:id', authenticateToken, async (req, res) => {
 app.post('/admin/templates', authenticateToken, async (req, res) => {
   try {
     const { name, subject, content, category = 'general' } = req.body;
-
     if (!name || !subject || !content) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Name, subject, and content are required'
-      });
+      return res.status(400).json({ status: 'error', message: 'Name, subject, and content are required' });
     }
-
-    const template = new EmailTemplate({
-      name,
-      subject,
-      content,
-      category
-    });
-
+    const template = new EmailTemplate({ name, subject, content, category });
     await template.save();
-
-    res.json({
-      status: 'success',
-      message: 'Template saved successfully',
-      data: { template }
-    });
+    res.json({ status: 'success', message: 'Template saved successfully', data: { template } });
   } catch (error) {
     console.error('Create template error:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Failed to create template'
-    });
+    res.status(500).json({ status: 'error', message: 'Failed to create template' });
   }
 });
 
@@ -1226,31 +830,12 @@ app.put('/admin/templates/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     const { name, subject, content, category } = req.body;
-
-    const template = await EmailTemplate.findByIdAndUpdate(
-      id,
-      { name, subject, content, category, lastUsed: new Date() },
-      { new: true, runValidators: true }
-    );
-
-    if (!template) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Template not found'
-      });
-    }
-
-    res.json({
-      status: 'success',
-      message: 'Template updated successfully',
-      data: { template }
-    });
+    const template = await EmailTemplate.findByIdAndUpdate(id, { name, subject, content, category, lastUsed: new Date() }, { new: true, runValidators: true });
+    if (!template) return res.status(404).json({ status: 'error', message: 'Template not found' });
+    res.json({ status: 'success', message: 'Template updated successfully', data: { template } });
   } catch (error) {
     console.error('Update template error:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Failed to update template'
-    });
+    res.status(500).json({ status: 'error', message: 'Failed to update template' });
   }
 });
 
@@ -1258,30 +843,12 @@ app.put('/admin/templates/:id', authenticateToken, async (req, res) => {
 app.delete('/admin/templates/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-
-    const template = await EmailTemplate.findByIdAndUpdate(
-      id,
-      { isActive: false },
-      { new: true }
-    );
-
-    if (!template) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Template not found'
-      });
-    }
-
-    res.json({
-      status: 'success',
-      message: 'Template deleted successfully'
-    });
+    const template = await EmailTemplate.findByIdAndUpdate(id, { isActive: false }, { new: true });
+    if (!template) return res.status(404).json({ status: 'error', message: 'Template not found' });
+    res.json({ status: 'success', message: 'Template deleted successfully' });
   } catch (error) {
     console.error('Delete template error:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Failed to delete template'
-    });
+    res.status(500).json({ status: 'error', message: 'Failed to delete template' });
   }
 });
 
@@ -1289,158 +856,73 @@ app.delete('/admin/templates/:id', authenticateToken, async (req, res) => {
 app.get('/admin/analytics', authenticateToken, async (req, res) => {
   try {
     const period = parseInt(req.query.period) || 30;
-
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - period);
-
-    const campaigns = await EmailCampaign.find({
-      sentAt: { $gte: startDate },
-      status: 'sent'
-    });
-
-    let totalSent = 0;
-    let totalDelivered = 0;
-    let totalOpened = 0;
-
+    const campaigns = await EmailCampaign.find({ sentAt: { $gte: startDate }, status: 'sent' });
+    let totalSent = 0, totalDelivered = 0, totalOpened = 0;
     campaigns.forEach(campaign => {
       totalSent += campaign.recipients.length;
       totalOpened += campaign.openCount;
       totalDelivered += campaign.recipients.length;
     });
-
     const deliveryRate = totalSent > 0 ? (totalDelivered / totalSent * 100).toFixed(1) : 0;
     const openRate = totalDelivered > 0 ? (totalOpened / totalDelivered * 100).toFixed(1) : 0;
-
-    res.json({
-      status: 'success',
-      data: {
-        deliveryRate: parseFloat(deliveryRate),
-        openRate: parseFloat(openRate),
-        clickRate: 0,
-        unsubscribeRate: 0,
-        deliveryTrend: 0.2,
-        openTrend: -0.3,
-        clickTrend: 0.1,
-        unsubscribeTrend: -0.1
-      }
-    });
+    res.json({ status: 'success', data: { deliveryRate: parseFloat(deliveryRate), openRate: parseFloat(openRate), clickRate: 0, unsubscribeRate: 0, deliveryTrend: 0.2, openTrend: -0.3, clickTrend: 0.1, unsubscribeTrend: -0.1 } });
   } catch (error) {
     console.error('Analytics error:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Failed to load analytics'
-    });
+    res.status(500).json({ status: 'error', message: 'Failed to load analytics' });
   }
 });
 
-// Email Tracking Pixel
+// Tracking Pixel
 app.get('/track/:campaignId/:recipientId', async (req, res) => {
   try {
     const { campaignId, recipientId } = req.params;
-
-    const trackingPixel = new TrackingPixel({
-      campaignId,
-      recipientId,
-      ipAddress: req.ip,
-      userAgent: req.get('User-Agent')
-    });
-
+    const trackingPixel = new TrackingPixel({ campaignId, recipientId, ipAddress: req.ip, userAgent: req.get('User-Agent') });
     await trackingPixel.save();
-
-    await EmailCampaign.findByIdAndUpdate(campaignId, {
-      $inc: { openCount: 1 }
-    });
-
-    await EmailCampaign.updateOne(
-      {
-        _id: campaignId,
-        'recipients._id': recipientId
-      },
-      {
-        $set: {
-          'recipients.$.status': 'opened',
-          'recipients.$.openedAt': new Date()
-        }
-      }
-    );
-
-    const pixel = Buffer.from(
-      'R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
-      'base64'
-    );
-
-    res.writeHead(200, {
-      'Content-Type': 'image/gif',
-      'Content-Length': pixel.length,
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Pragma': 'no-cache',
-      'Expires': '0'
-    });
-
+    await EmailCampaign.findByIdAndUpdate(campaignId, { $inc: { openCount: 1 } });
+    await EmailCampaign.updateOne({ _id: campaignId, 'recipients._id': recipientId }, { $set: { 'recipients.$.status': 'opened', 'recipients.$.openedAt': new Date() } });
+    const pixel = Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64');
+    res.writeHead(200, { 'Content-Type': 'image/gif', 'Content-Length': pixel.length, 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache', 'Expires': '0' });
     res.end(pixel);
   } catch (error) {
     console.error('Tracking pixel error:', error);
-    const pixel = Buffer.from(
-      'R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
-      'base64'
-    );
+    const pixel = Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64');
     res.type('gif').send(pixel);
   }
 });
 
-// Export investors
+// Export endpoints
 app.get('/admin/export/investors', authenticateToken, async (req, res) => {
   try {
-    const investors = await Investor.find({})
-      .sort({ joinDate: -1 })
-      .select('name email phone country joinDate tier status totalInvested');
-
+    const investors = await Investor.find({}).sort({ joinDate: -1 }).select('name email phone country joinDate tier status totalInvested');
     const csvHeader = 'Name,Email,Phone,Country,Join Date,Tier,Status,Total Invested\n';
-    const csvRows = investors.map(inv =>
-      `"${inv.name}","${inv.email}","${inv.phone || ''}","${inv.country || ''}","${new Date(inv.joinDate).toISOString().split('T')[0]}","${inv.tier}","${inv.status}",${inv.totalInvested}`
-    ).join('\n');
-
+    const csvRows = investors.map(inv => `"${inv.name}","${inv.email}","${inv.phone || ''}","${inv.country || ''}","${new Date(inv.joinDate).toISOString().split('T')[0]}","${inv.tier}","${inv.status}",${inv.totalInvested}`).join('\n');
     const csv = csvHeader + csvRows;
-
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', 'attachment; filename=investors.csv');
     res.send(csv);
   } catch (error) {
     console.error('Export investors error:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Failed to export investors'
-    });
+    res.status(500).json({ status: 'error', message: 'Failed to export investors' });
   }
 });
 
-// Export emails
 app.get('/admin/export/emails', authenticateToken, async (req, res) => {
   try {
-    const campaigns = await EmailCampaign.find({ status: 'sent' })
-      .populate('sentBy', 'name')
-      .sort({ sentAt: -1 })
-      .select('subject sentAt openCount recipients');
-
+    const campaigns = await EmailCampaign.find({ status: 'sent' }).populate('sentBy', 'name').sort({ sentAt: -1 }).select('subject sentAt openCount recipients');
     const csvHeader = 'Subject,Sent Date,Recipients,Open Rate,Sent By\n';
     const csvRows = campaigns.map(campaign => {
-      const openRate = campaign.recipients && campaign.recipients.length > 0 ?
-        ((campaign.openCount / campaign.recipients.length) * 100).toFixed(1) : 0;
-
+      const openRate = campaign.recipients && campaign.recipients.length > 0 ? ((campaign.openCount / campaign.recipients.length) * 100).toFixed(1) : 0;
       return `"${campaign.subject}","${new Date(campaign.sentAt).toISOString()}",${campaign.recipients ? campaign.recipients.length : 0},${openRate}%,"${campaign.sentBy?.name || 'System'}"`;
     }).join('\n');
-
     const csv = csvHeader + csvRows;
-
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', 'attachment; filename=email-history.csv');
     res.send(csv);
   } catch (error) {
     console.error('Export emails error:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Failed to export email history'
-    });
+    res.status(500).json({ status: 'error', message: 'Failed to export email history' });
   }
 });
 
@@ -1451,101 +933,50 @@ async function sendEmailCampaign(campaign) {
   console.log('========================================');
   console.log('Starting email campaign:', campaign._id);
   console.log(`Total recipients: ${campaign.recipients.length}`);
-  console.log(`Using INFO Transporter for sending`);
-  console.log(`Sender address: info@bithashcapital.live`);
+  console.log(`Sender: info@bithashcapital.live`);
+  console.log('Email template: Seamless Header + White Body + Footer (NO BORDERS)');
   console.log('========================================');
 
   try {
-    const recipients = campaign.recipients;
-    let successCount = 0;
-    let failCount = 0;
-
-    for (const recipient of recipients) {
+    let successCount = 0, failCount = 0;
+    for (const recipient of campaign.recipients) {
       try {
-        console.log(`[${new Date().toISOString()}] Sending email to: ${recipient.email}`);
+        console.log(`[${new Date().toISOString()}] Sending to: ${recipient.email}`);
 
         let trackingPixel = null;
         if (campaign.enableTracking) {
           trackingPixel = `${process.env.API_BASE_URL || 'https://tiktok-com-shop.onrender.com'}/track/${campaign._id}/${recipient._id}`;
         }
 
-        // Create professional email with branding (admin content becomes the body)
+        // Create seamless professional email - NO BORDERS, flows inline
         const emailHtml = createProfessionalEmail(campaign.subject, campaign.content, trackingPixel);
 
-        const mailOptions = {
-          from: {
-            name: 'BitHash Capital',
-            address: 'info@bithashcapital.live'
-          },
+        await transporter.sendMail({
+          from: { name: 'BitHash Capital', address: 'info@bithashcapital.live' },
           to: recipient.email,
           subject: campaign.subject,
           html: emailHtml,
-          headers: {
-            'X-Campaign-ID': campaign._id.toString(),
-            'X-Recipient-ID': recipient._id.toString(),
-            'X-Transporter': 'INFO'
-          }
-        };
+          headers: { 'X-Campaign-ID': campaign._id.toString(), 'X-Recipient-ID': recipient._id.toString(), 'X-Transporter': 'INFO' }
+        });
 
-        const info = await transporter.sendMail(mailOptions);
-        console.log(`[${new Date().toISOString()}] ✓ Email sent successfully to: ${recipient.email}`);
-        console.log(`    Message ID: ${info.messageId}`);
-
+        console.log(`✓ Sent to: ${recipient.email}`);
         successCount++;
-
-        await EmailCampaign.updateOne(
-          {
-            _id: campaign._id,
-            'recipients._id': recipient._id
-          },
-          {
-            $set: {
-              'recipients.$.status': 'delivered'
-            }
-          }
-        );
-
-        // Small delay to avoid overwhelming the email server
+        await EmailCampaign.updateOne({ _id: campaign._id, 'recipients._id': recipient._id }, { $set: { 'recipients.$.status': 'delivered' } });
         await new Promise(resolve => setTimeout(resolve, 100));
       } catch (emailError) {
         failCount++;
-        console.error(`[${new Date().toISOString()}] ✗ FAILED to send email to ${recipient.email}`);
-        console.error(`    Error code: ${emailError.code || 'N/A'}`);
-        console.error(`    Error message: ${emailError.message}`);
-
-        if (emailError.response) {
-          console.error(`    SMTP Response: ${emailError.response}`);
-        }
-
-        await EmailCampaign.updateOne(
-          {
-            _id: campaign._id,
-            'recipients._id': recipient._id
-          },
-          {
-            $set: {
-              'recipients.$.status': 'failed',
-              'recipients.$.error': emailError.message
-            }
-          }
-        );
+        console.error(`✗ Failed to send to ${recipient.email}:`, emailError.message);
+        await EmailCampaign.updateOne({ _id: campaign._id, 'recipients._id': recipient._id }, { $set: { 'recipients.$.status': 'failed', 'recipients.$.error': emailError.message } });
       }
     }
-
     campaign.status = 'sent';
     campaign.sentAt = new Date();
     await campaign.save();
-
-    console.log('========================================');
-    console.log('Email campaign completed:', campaign._id);
-    console.log(`✅ Successful sends: ${successCount}`);
-    console.log(`❌ Failed sends: ${failCount}`);
-    console.log('========================================');
+    console.log(`Campaign completed: ${successCount} sent, ${failCount} failed`);
   } catch (error) {
-    console.error('CRITICAL ERROR in sendEmailCampaign:', error);
+    console.error('Campaign error:', error);
     campaign.status = 'failed';
     await campaign.save();
-    throw error;
   }
 }
 
@@ -1556,64 +987,39 @@ async function initializeDefaultData() {
   try {
     const adminCount = await AdminUser.countDocuments();
     if (adminCount === 0) {
-      const defaultAdmin = new AdminUser({
-        username: 'admin',
-        password: 'admin123',
-        name: 'System Administrator',
-        role: 'superadmin'
-      });
-      await defaultAdmin.save();
+      await AdminUser.create({ username: 'admin', password: 'admin123', name: 'System Administrator', role: 'superadmin' });
       console.log('Default admin user created: admin / admin123');
-      console.log('Change default password in production!');
-    } else {
-      console.log('Admin user already exists');
     }
-
-    console.log('All default data initialized successfully');
+    console.log('Default data initialized');
   } catch (error) {
     console.error('Error initializing default data:', error);
   }
 }
 
 // ======================
-// Error Handling Middleware
+// Error Handling
 // ======================
 app.use((error, req, res, next) => {
   console.error('Unhandled error:', error);
-  res.status(500).json({
-    status: 'error',
-    message: 'Internal server error'
-  });
+  res.status(500).json({ status: 'error', message: 'Internal server error' });
 });
 
-// 404 Handler
 app.use('*', (req, res) => {
-  res.status(404).json({
-    status: 'error',
-    message: 'Endpoint not found'
-  });
+  res.status(404).json({ status: 'error', message: 'Endpoint not found' });
 });
 
 // ======================
 // Server Startup
 // ======================
 const PORT = process.env.PORT || 3000;
-
 app.listen(PORT, async () => {
-  console.log('Starting BitHash Capital Admin Server...');
-  console.log(`Port: ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`Frontend URL: https://citation-training-academy.vercel.app`);
-  console.log(`Backend URL: https://tiktok-com-shop.onrender.com`);
-  console.log(`Website: https://www.bithashcapital.live`);
-
+  console.log(`\n${'='.repeat(60)}`);
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📧 Seamless Email Template Active`);
+  console.log(`📤 Sender: info@bithashcapital.live`);
+  console.log(`🎨 Header + White Body + Footer - NO BORDERS, Flows Inline`);
+  console.log(`${'='.repeat(60)}\n`);
   await initializeDefaultData();
-
-  console.log('BitHash Capital Admin Server running successfully!');
-  console.log('CORS configured for frontend access');
-  console.log('Database connected and ready');
-  console.log('Professional Email Template Active: Header + White Body + Footer');
-  console.log('All systems operational');
 });
 
 module.exports = app;
