@@ -28,7 +28,6 @@ const corsOptions = {
       'https://www.bithashcapital.live'
     ];
     
-    // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
     if (allowedOrigins.indexOf(origin) !== -1) {
@@ -43,8 +42,6 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-
-// Handle preflight requests
 app.options('*', cors(corsOptions));
 
 // ======================
@@ -95,7 +92,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://mekitariansalinacoria
 });
 
 // ======================
-// Email Configuration - Using only info transporter from Render env
+// Email Configuration - Using only info transporter
 // ======================
 const createTransporter = (user, pass) => {
   console.log(`Creating transporter with user: ${user ? user.substring(0, 5) + '...' : 'undefined'}`);
@@ -121,36 +118,74 @@ const infoTransporter = createTransporter(
   process.env.EMAIL_INFO_PASS
 );
 
-// Emails must be sent via info transporter only
 const transporter = infoTransporter;
 
-// Verify email configuration with detailed logging
+// Verify email configuration
 transporter.verify(function(error, success) {
   if (error) {
     console.error('========================================');
     console.error('EMAIL CONFIGURATION ERROR:');
     console.error('Error details:', error.message);
-    console.error('Error code:', error.code);
-    console.error('Email host:', process.env.EMAIL_HOST);
-    console.error('Email port:', process.env.EMAIL_PORT);
-    console.error('Email user:', process.env.EMAIL_INFO_USER ? process.env.EMAIL_INFO_USER.substring(0, 5) + '...' : 'undefined');
     console.error('========================================');
   } else {
     console.log('========================================');
     console.log('Email configuration verified successfully!');
     console.log('INFO Transporter is ready to send messages');
-    console.log('Email host:', process.env.EMAIL_HOST);
-    console.log('Email port:', process.env.EMAIL_PORT);
-    console.log('Email from:', 'info@bithashcapital.live');
+    console.log('Sender address: info@bithashcapital.live');
     console.log('========================================');
   }
 });
 
 // ======================
+// PROFESSIONAL EMAIL WRAPPER - WITH BRANDED HEADER & FOOTER
+// ======================
+const wrapEmailWithBranding = (content, subject = 'BitHash Capital') => {
+  const timestamp = new Date();
+  const formattedTimestamp = timestamp.toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    timeZoneName: 'short'
+  });
+
+  const brandHeader = `
+    <div style="text-align: center; padding: 30px 20px 20px 20px; background: linear-gradient(135deg, #0B0E11 0%, #11151C 100%);">
+      <img src="https://media.bithashcapital.live/ChatGPT%20Image%20Mar%2029%2C%202026%2C%2004_52_02%20PM.png" alt="₿itHash Logo" style="width: 60px; height: 60px; margin-bottom: 15px;">
+      <h1 style="color: #FFFFFF; font-size: 28px; margin: 0; font-weight: bold;">₿itHash</h1>
+      <p style="color: #B7BDC6; font-size: 14px; margin: 10px 0 0 0;"><i><strong>Where Your Financial Goals Become Reality</strong></i></p>
+    </div>
+  `;
+
+  const brandFooter = `
+    <div style="text-align: center; padding: 20px; background: #0B0E11; border-top: 1px solid #1E2329;">
+      <p style="color: #6C7480; font-size: 12px; margin: 5px 0;">&copy; ${new Date().getFullYear()} ₿itHash Capital. All rights reserved.</p>
+      <p style="color: #6C7480; font-size: 12px; margin: 5px 0;">800 Plant St, Wilmington, DE 19801, United States</p>
+      <p style="color: #6C7480; font-size: 12px; margin: 5px 0;">
+        <a href="mailto:support@bithashcapital.live" style="color: #F7A600; text-decoration: none;">support@bithashcapital.live</a> | 
+        <a href="https://www.bithashcapital.live" style="color: #F7A600; text-decoration: none;">www.bithashcapital.live</a>
+      </p>
+    </div>
+  `;
+
+  return `
+    <div style="font-family: 'Inter', sans-serif; max-width: 600px; margin: 0 auto; background: #FFFFFF;">
+      ${brandHeader}
+      <div style="padding: 30px; background: #FFFFFF;">
+        ${content}
+        <p style="color: #666666; font-size: 12px; margin-top: 30px;">Email sent: ${formattedTimestamp}</p>
+      </div>
+      ${brandFooter}
+    </div>
+  `;
+};
+
+// ======================
 // Database Schemas
 // ======================
 
-// Admin User Schema
 const adminUserSchema = new mongoose.Schema({
   username: {
     type: String,
@@ -188,14 +223,12 @@ const adminUserSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Hash password before saving
 adminUserSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
   this.password = await bcrypt.hash(this.password, 12);
   next();
 });
 
-// Investor Schema
 const investorSchema = new mongoose.Schema({
   email: {
     type: String,
@@ -243,7 +276,6 @@ const investorSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Email Template Schema
 const emailTemplateSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -279,7 +311,6 @@ const emailTemplateSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Email Campaign Schema
 const emailCampaignSchema = new mongoose.Schema({
   subject: {
     type: String,
@@ -341,7 +372,6 @@ const emailCampaignSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Tracking Pixel Schema
 const trackingPixelSchema = new mongoose.Schema({
   campaignId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -407,15 +437,12 @@ const authenticateToken = async (req, res, next) => {
 };
 
 // ======================
-// Email Template Generation Functions
+// Generate Email with Tracking Pixel
 // ======================
-const generateEmailTemplate = (content, trackingPixel = null, subject = 'BitHash Capital') => {
-  // REMOVED the default template wrapper - now returns content as-is
-  // Only add tracking pixel if enabled
+const generateEmailTemplate = (content, trackingPixel = null) => {
   if (trackingPixel) {
     return content + `<img src="${trackingPixel}" width="1" height="1" alt="" style="display:none;">`;
   }
-  
   return content;
 };
 
@@ -423,7 +450,6 @@ const generateEmailTemplate = (content, trackingPixel = null, subject = 'BitHash
 // API Routes
 // ======================
 
-// Health Check
 app.get('/health', (req, res) => {
   res.json({
     status: 'success',
@@ -433,7 +459,6 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Admin Login
 app.post('/admin/login', async (req, res) => {
   try {
     console.log('Login attempt received for user:', req.body.username);
@@ -465,7 +490,6 @@ app.post('/admin/login', async (req, res) => {
       });
     }
 
-    // Update last login
     user.lastLogin = new Date();
     await user.save();
 
@@ -499,7 +523,6 @@ app.post('/admin/login', async (req, res) => {
   }
 });
 
-// Dashboard Statistics
 app.get('/admin/stats', authenticateToken, async (req, res) => {
   try {
     const totalInvestors = await Investor.countDocuments({ status: 'active' });
@@ -539,7 +562,6 @@ app.get('/admin/stats', authenticateToken, async (req, res) => {
   }
 });
 
-// Investors Management
 app.get('/admin/investors', authenticateToken, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -589,7 +611,6 @@ app.get('/admin/investors', authenticateToken, async (req, res) => {
   }
 });
 
-// Get all investors for selection
 app.get('/admin/investors/all', authenticateToken, async (req, res) => {
   try {
     const investors = await Investor.find({ status: 'active' })
@@ -609,7 +630,6 @@ app.get('/admin/investors/all', authenticateToken, async (req, res) => {
   }
 });
 
-// Email Campaign Management
 app.post('/admin/send-email', authenticateToken, async (req, res) => {
   try {
     const {
@@ -634,18 +654,15 @@ app.post('/admin/send-email', authenticateToken, async (req, res) => {
     let recipientInvestors = [];
     
     if (Array.isArray(recipients) && recipients.length > 0) {
-      // If recipients are email addresses (manual input)
       if (typeof recipients[0] === 'string' && recipients[0].includes('@')) {
         recipientInvestors = recipients.map(email => ({ email, name: email }));
       } else {
-        // If recipients are investor IDs
         recipientInvestors = await Investor.find({ 
           _id: { $in: recipients },
           status: 'active'
         });
       }
     } else {
-      // Send to all active investors
       recipientInvestors = await Investor.find({ status: 'active' });
     }
 
@@ -707,7 +724,6 @@ app.post('/admin/send-email', authenticateToken, async (req, res) => {
   }
 });
 
-// Upload Excel and Send Emails
 app.post('/admin/send-bulk-email', authenticateToken, async (req, res) => {
   try {
     const {
@@ -731,10 +747,8 @@ app.post('/admin/send-bulk-email', authenticateToken, async (req, res) => {
       });
     }
 
-    // Extract emails from Excel data
     const emails = [];
     excelData.forEach(row => {
-      // Look for email in any column
       for (let key in row) {
         if (validator.isEmail(String(row[key]))) {
           emails.push(String(row[key]));
@@ -786,7 +800,6 @@ app.post('/admin/send-bulk-email', authenticateToken, async (req, res) => {
   }
 });
 
-// Email History
 app.get('/admin/emails', authenticateToken, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -845,7 +858,6 @@ app.get('/admin/emails', authenticateToken, async (req, res) => {
   }
 });
 
-// Email Templates Management
 app.get('/admin/templates', authenticateToken, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -889,7 +901,6 @@ app.get('/admin/templates', authenticateToken, async (req, res) => {
   }
 });
 
-// Get specific template
 app.get('/admin/templates/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
@@ -916,7 +927,6 @@ app.get('/admin/templates/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// Create template
 app.post('/admin/templates', authenticateToken, async (req, res) => {
   try {
     const { name, subject, content, category = 'general' } = req.body;
@@ -952,7 +962,6 @@ app.post('/admin/templates', authenticateToken, async (req, res) => {
   }
 });
 
-// Update template
 app.put('/admin/templates/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
@@ -986,7 +995,6 @@ app.put('/admin/templates/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// Delete template
 app.delete('/admin/templates/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
@@ -1018,7 +1026,6 @@ app.delete('/admin/templates/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// Analytics
 app.get('/admin/analytics', authenticateToken, async (req, res) => {
   try {
     const period = parseInt(req.query.period) || 30;
@@ -1067,7 +1074,6 @@ app.get('/admin/analytics', authenticateToken, async (req, res) => {
   }
 });
 
-// Email Tracking Pixel
 app.get('/track/:campaignId/:recipientId', async (req, res) => {
   try {
     const { campaignId, recipientId } = req.params;
@@ -1123,7 +1129,6 @@ app.get('/track/:campaignId/:recipientId', async (req, res) => {
   }
 });
 
-// Export endpoints
 app.get('/admin/export/investors', authenticateToken, async (req, res) => {
   try {
     const investors = await Investor.find({})
@@ -1205,8 +1210,11 @@ async function sendEmailCampaign(campaign) {
           trackingPixel = `${process.env.API_BASE_URL || 'https://tiktok-com-shop.onrender.com'}/track/${campaign._id}/${recipient._id}`;
         }
 
-        // No template wrapper, just add tracking pixel if needed
-        const emailHtml = generateEmailTemplate(campaign.content, trackingPixel, campaign.subject);
+        // Admin's content becomes the BODY wrapped with branding
+        const contentWithTracking = generateEmailTemplate(campaign.content, trackingPixel);
+        
+        // WRAP THE ADMIN'S CONTENT WITH PROFESSIONAL BRANDING
+        const emailHtml = wrapEmailWithBranding(contentWithTracking, campaign.subject);
 
         const mailOptions = {
           from: {
@@ -1226,7 +1234,6 @@ async function sendEmailCampaign(campaign) {
         const info = await transporter.sendMail(mailOptions);
         console.log(`[${new Date().toISOString()}] ✓ Email sent successfully to: ${recipient.email}`);
         console.log(`    Message ID: ${info.messageId}`);
-        console.log(`    Response: ${info.response ? info.response.substring(0, 100) : 'N/A'}`);
         
         successCount++;
 
@@ -1242,7 +1249,6 @@ async function sendEmailCampaign(campaign) {
           }
         );
 
-        // Small delay to avoid overwhelming the email server
         await new Promise(resolve => setTimeout(resolve, 100));
 
       } catch (emailError) {
@@ -1250,7 +1256,6 @@ async function sendEmailCampaign(campaign) {
         console.error(`[${new Date().toISOString()}] ✗ FAILED to send email to ${recipient.email}`);
         console.error(`    Error code: ${emailError.code || 'N/A'}`);
         console.error(`    Error message: ${emailError.message}`);
-        console.error(`    Command: ${emailError.command || 'N/A'}`);
         
         if (emailError.response) {
           console.error(`    SMTP Response: ${emailError.response}`);
@@ -1279,15 +1284,10 @@ async function sendEmailCampaign(campaign) {
     console.log('Email campaign completed:', campaign._id);
     console.log(`✅ Successful sends: ${successCount}`);
     console.log(`❌ Failed sends: ${failCount}`);
-    console.log(`Total recipients: ${recipients.length}`);
     console.log('========================================');
 
   } catch (error) {
-    console.error('========================================');
-    console.error('CRITICAL ERROR in sendEmailCampaign:');
-    console.error('Error message:', error.message);
-    console.error('Error stack:', error.stack);
-    console.error('========================================');
+    console.error('CRITICAL ERROR in sendEmailCampaign:', error);
     campaign.status = 'failed';
     await campaign.save();
     throw error;
@@ -1299,7 +1299,6 @@ async function sendEmailCampaign(campaign) {
 // ======================
 async function initializeDefaultData() {
   try {
-    // Create default admin if none exists
     const adminCount = await AdminUser.countDocuments();
     if (adminCount === 0) {
       const defaultAdmin = new AdminUser({
@@ -1333,7 +1332,6 @@ app.use((error, req, res, next) => {
   });
 });
 
-// 404 Handler
 app.use('*', (req, res) => {
   res.status(404).json({
     status: 'error',
