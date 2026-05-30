@@ -141,7 +141,7 @@ transporter.verify(function(error, success) {
     console.log('INFO Transporter is ready to send messages');
     console.log('Email host:', process.env.EMAIL_HOST);
     console.log('Email port:', process.env.EMAIL_PORT);
-    console.log('Email from:', process.env.EMAIL_FROM || 'noreply@bithashcapital.com');
+    console.log('Email from:', 'info@bithashcapital.live');
     console.log('========================================');
   }
 });
@@ -818,9 +818,9 @@ app.get('/admin/emails', authenticateToken, async (req, res) => {
     const emailsWithStats = emails.map(email => ({
       id: email._id,
       subject: email.subject,
-      recipientCount: email.recipients.length,
+      recipientCount: email.recipients ? email.recipients.length : 0,
       sentDate: email.sentAt,
-      openRate: email.recipients.length > 0 ? 
+      openRate: email.recipients && email.recipients.length > 0 ? 
         ((email.openCount / email.recipients.length) * 100).toFixed(1) : 0,
       status: email.status,
       sentBy: email.sentBy?.name || 'System'
@@ -1159,10 +1159,10 @@ app.get('/admin/export/emails', authenticateToken, async (req, res) => {
 
     const csvHeader = 'Subject,Sent Date,Recipients,Open Rate,Sent By\n';
     const csvRows = campaigns.map(campaign => {
-      const openRate = campaign.recipients.length > 0 ? 
+      const openRate = campaign.recipients && campaign.recipients.length > 0 ? 
         ((campaign.openCount / campaign.recipients.length) * 100).toFixed(1) : 0;
       
-      return `"${campaign.subject}","${new Date(campaign.sentAt).toISOString()}",${campaign.recipients.length},${openRate}%,"${campaign.sentBy?.name || 'System'}"`;
+      return `"${campaign.subject}","${new Date(campaign.sentAt).toISOString()}",${campaign.recipients ? campaign.recipients.length : 0},${openRate}%,"${campaign.sentBy?.name || 'System'}"`;
     }).join('\n');
 
     const csv = csvHeader + csvRows;
@@ -1188,6 +1188,7 @@ async function sendEmailCampaign(campaign) {
   console.log('Starting email campaign:', campaign._id);
   console.log(`Total recipients: ${campaign.recipients.length}`);
   console.log(`Using INFO Transporter for sending`);
+  console.log(`Sender address: info@bithashcapital.live`);
   console.log('========================================');
   
   try {
@@ -1210,7 +1211,7 @@ async function sendEmailCampaign(campaign) {
         const mailOptions = {
           from: {
             name: 'BitHash Capital',
-            address: process.env.EMAIL_FROM || 'noreply@bithashcapital.com'
+            address: 'info@bithashcapital.live'
           },
           to: recipient.email,
           subject: campaign.subject,
@@ -1225,7 +1226,7 @@ async function sendEmailCampaign(campaign) {
         const info = await transporter.sendMail(mailOptions);
         console.log(`[${new Date().toISOString()}] ✓ Email sent successfully to: ${recipient.email}`);
         console.log(`    Message ID: ${info.messageId}`);
-        console.log(`    Response: ${info.response.substring(0, 100)}`);
+        console.log(`    Response: ${info.response ? info.response.substring(0, 100) : 'N/A'}`);
         
         successCount++;
 
