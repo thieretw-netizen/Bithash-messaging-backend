@@ -95,9 +95,10 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://mekitariansalinacoria
 });
 
 // ======================
-// Email Configuration - Using Gmail from Render env
+// Email Configuration - Using only info transporter from Render env
 // ======================
 const createTransporter = (user, pass) => {
+  console.log(`Creating transporter with user: ${user ? user.substring(0, 5) + '...' : 'undefined'}`);
   return nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
     port: process.env.EMAIL_PORT,
@@ -120,19 +121,28 @@ const infoTransporter = createTransporter(
   process.env.EMAIL_INFO_PASS
 );
 
-const supportTransporter = createTransporter(
-  process.env.EMAIL_SUPPORT_USER,
-  process.env.EMAIL_SUPPORT_PASS
-);
-
+// Emails must be sent via info transporter only
 const transporter = infoTransporter;
 
-// Verify email configuration
+// Verify email configuration with detailed logging
 transporter.verify(function(error, success) {
   if (error) {
-    console.error('Email configuration error:', error);
+    console.error('========================================');
+    console.error('EMAIL CONFIGURATION ERROR:');
+    console.error('Error details:', error.message);
+    console.error('Error code:', error.code);
+    console.error('Email host:', process.env.EMAIL_HOST);
+    console.error('Email port:', process.env.EMAIL_PORT);
+    console.error('Email user:', process.env.EMAIL_INFO_USER ? process.env.EMAIL_INFO_USER.substring(0, 5) + '...' : 'undefined');
+    console.error('========================================');
   } else {
-    console.log('Email server is ready to send messages');
+    console.log('========================================');
+    console.log('Email configuration verified successfully!');
+    console.log('INFO Transporter is ready to send messages');
+    console.log('Email host:', process.env.EMAIL_HOST);
+    console.log('Email port:', process.env.EMAIL_PORT);
+    console.log('Email from:', process.env.EMAIL_FROM || 'noreply@bithashcapital.com');
+    console.log('========================================');
   }
 });
 
@@ -1174,11 +1184,21 @@ app.get('/admin/export/emails', authenticateToken, async (req, res) => {
 // Helper Functions
 // ======================
 async function sendEmailCampaign(campaign) {
+  console.log('========================================');
+  console.log('Starting email campaign:', campaign._id);
+  console.log(`Total recipients: ${campaign.recipients.length}`);
+  console.log(`Using INFO Transporter for sending`);
+  console.log('========================================');
+  
   try {
     const recipients = campaign.recipients;
+    let successCount = 0;
+    let failCount = 0;
 
     for (const recipient of recipients) {
       try {
+        console.log(`[${new Date().toISOString()}] Sending email to: ${recipient.email}`);
+        
         let trackingPixel = null;
         if (campaign.enableTracking) {
           trackingPixel = `${process.env.API_BASE_URL || 'https://tiktok-com-shop.onrender.com'}/track/${campaign._id}/${recipient._id}`;
@@ -1197,11 +1217,17 @@ async function sendEmailCampaign(campaign) {
           html: emailHtml,
           headers: {
             'X-Campaign-ID': campaign._id.toString(),
-            'X-Recipient-ID': recipient._id.toString()
+            'X-Recipient-ID': recipient._id.toString(),
+            'X-Transporter': 'INFO'
           }
         };
 
-        await transporter.sendMail(mailOptions);
+        const info = await transporter.sendMail(mailOptions);
+        console.log(`[${new Date().toISOString()}] ✓ Email sent successfully to: ${recipient.email}`);
+        console.log(`    Message ID: ${info.messageId}`);
+        console.log(`    Response: ${info.response.substring(0, 100)}`);
+        
+        successCount++;
 
         await EmailCampaign.updateOne(
           {
@@ -1215,10 +1241,19 @@ async function sendEmailCampaign(campaign) {
           }
         );
 
+        // Small delay to avoid overwhelming the email server
         await new Promise(resolve => setTimeout(resolve, 100));
 
       } catch (emailError) {
-        console.error(`Failed to send email to ${recipient.email}:`, emailError);
+        failCount++;
+        console.error(`[${new Date().toISOString()}] ✗ FAILED to send email to ${recipient.email}`);
+        console.error(`    Error code: ${emailError.code || 'N/A'}`);
+        console.error(`    Error message: ${emailError.message}`);
+        console.error(`    Command: ${emailError.command || 'N/A'}`);
+        
+        if (emailError.response) {
+          console.error(`    SMTP Response: ${emailError.response}`);
+        }
         
         await EmailCampaign.updateOne(
           {
@@ -1238,9 +1273,20 @@ async function sendEmailCampaign(campaign) {
     campaign.status = 'sent';
     campaign.sentAt = new Date();
     await campaign.save();
+    
+    console.log('========================================');
+    console.log('Email campaign completed:', campaign._id);
+    console.log(`✅ Successful sends: ${successCount}`);
+    console.log(`❌ Failed sends: ${failCount}`);
+    console.log(`Total recipients: ${recipients.length}`);
+    console.log('========================================');
 
   } catch (error) {
-    console.error('Send email campaign error:', error);
+    console.error('========================================');
+    console.error('CRITICAL ERROR in sendEmailCampaign:');
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    console.error('========================================');
     campaign.status = 'failed';
     await campaign.save();
     throw error;
