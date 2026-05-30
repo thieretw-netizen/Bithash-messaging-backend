@@ -138,6 +138,7 @@ transporter.verify(function(error, success) {
 
 // ======================
 // PROFESSIONAL EMAIL WRAPPER - WITH BRANDED HEADER & FOOTER
+// White background body that fits perfectly between header and footer
 // ======================
 const wrapEmailWithBranding = (content, subject = 'BitHash Capital') => {
   const timestamp = new Date();
@@ -151,34 +152,83 @@ const wrapEmailWithBranding = (content, subject = 'BitHash Capital') => {
     timeZoneName: 'short'
   });
 
+  // Professional branded header - dark gradient background
   const brandHeader = `
-    <div style="text-align: center; padding: 30px 20px 20px 20px; background: linear-gradient(135deg, #0B0E11 0%, #11151C 100%);">
+    <div style="text-align: center; padding: 30px 20px 20px 20px; background: linear-gradient(135deg, #0B0E11 0%, #11151C 100%); border-radius: 0;">
       <img src="https://media.bithashcapital.live/ChatGPT%20Image%20Mar%2029%2C%202026%2C%2004_52_02%20PM.png" alt="₿itHash Logo" style="width: 60px; height: 60px; margin-bottom: 15px;">
-      <h1 style="color: #FFFFFF; font-size: 28px; margin: 0; font-weight: bold;">₿itHash</h1>
-      <p style="color: #B7BDC6; font-size: 14px; margin: 10px 0 0 0;"><i><strong>Where Your Financial Goals Become Reality</strong></i></p>
+      <h1 style="color: #FFFFFF; font-size: 28px; margin: 0; font-weight: bold; font-family: 'Inter', sans-serif;">₿itHash</h1>
+      <p style="color: #B7BDC6; font-size: 14px; margin: 10px 0 0 0; font-family: 'Inter', sans-serif;"><i><strong>Where Your Financial Goals Become Reality</strong></i></p>
     </div>
   `;
 
+  // Professional branded footer - dark background with contact info
   const brandFooter = `
     <div style="text-align: center; padding: 20px; background: #0B0E11; border-top: 1px solid #1E2329;">
-      <p style="color: #6C7480; font-size: 12px; margin: 5px 0;">&copy; ${new Date().getFullYear()} ₿itHash Capital. All rights reserved.</p>
-      <p style="color: #6C7480; font-size: 12px; margin: 5px 0;">800 Plant St, Wilmington, DE 19801, United States</p>
-      <p style="color: #6C7480; font-size: 12px; margin: 5px 0;">
+      <p style="color: #6C7480; font-size: 12px; margin: 5px 0; font-family: 'Inter', sans-serif;">&copy; ${new Date().getFullYear()} ₿itHash Capital. All rights reserved.</p>
+      <p style="color: #6C7480; font-size: 12px; margin: 5px 0; font-family: 'Inter', sans-serif;">800 Plant St, Wilmington, DE 19801, United States</p>
+      <p style="color: #6C7480; font-size: 12px; margin: 5px 0; font-family: 'Inter', sans-serif;">
         <a href="mailto:support@bithashcapital.live" style="color: #F7A600; text-decoration: none;">support@bithashcapital.live</a> | 
         <a href="https://www.bithashcapital.live" style="color: #F7A600; text-decoration: none;">www.bithashcapital.live</a>
       </p>
     </div>
   `;
 
-  return `
-    <div style="font-family: 'Inter', sans-serif; max-width: 600px; margin: 0 auto; background: #FFFFFF;">
-      ${brandHeader}
-      <div style="padding: 30px; background: #FFFFFF;">
-        ${content}
-        <p style="color: #666666; font-size: 12px; margin-top: 30px;">Email sent: ${formattedTimestamp}</p>
-      </div>
-      ${brandFooter}
+  // Clean white background body - the admin's content goes here
+  // Ensured to have proper padding and clean white background
+  const cleanWhiteBody = `
+    <div style="padding: 30px; background: #FFFFFF; font-family: 'Inter', sans-serif; color: #1E293B; line-height: 1.6;">
+      ${content}
+      <p style="color: #94A3B8; font-size: 11px; margin-top: 30px; text-align: center; border-top: 1px solid #E2E8F0; padding-top: 20px;">
+        This email was sent on ${formattedTimestamp}
+      </p>
     </div>
+  `;
+
+  // Complete email wrapper - header + white body + footer
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>${subject} - ₿itHash Capital</title>
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        body {
+          margin: 0;
+          padding: 0;
+          background-color: #F1F5F9;
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        .email-container {
+          max-width: 600px;
+          margin: 0 auto;
+          background-color: #FFFFFF;
+          box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+        }
+        @media only screen and (max-width: 600px) {
+          .email-container {
+            width: 100% !important;
+          }
+          div[style*="padding: 30px"] {
+            padding: 20px !important;
+          }
+        }
+      </style>
+    </head>
+    <body style="margin: 0; padding: 20px 0; background-color: #F1F5F9;">
+      <div class="email-container" style="max-width: 600px; margin: 0 auto; background-color: #FFFFFF; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.01);">
+        ${brandHeader}
+        ${cleanWhiteBody}
+        ${brandFooter}
+      </div>
+    </body>
+    </html>
   `;
 };
 
@@ -439,7 +489,7 @@ const authenticateToken = async (req, res, next) => {
 // ======================
 // Generate Email with Tracking Pixel
 // ======================
-const generateEmailTemplate = (content, trackingPixel = null) => {
+const generateEmailWithTracking = (content, trackingPixel = null) => {
   if (trackingPixel) {
     return content + `<img src="${trackingPixel}" width="1" height="1" alt="" style="display:none;">`;
   }
@@ -1210,11 +1260,15 @@ async function sendEmailCampaign(campaign) {
           trackingPixel = `${process.env.API_BASE_URL || 'https://tiktok-com-shop.onrender.com'}/track/${campaign._id}/${recipient._id}`;
         }
 
-        // Admin's content becomes the BODY wrapped with branding
-        const contentWithTracking = generateEmailTemplate(campaign.content, trackingPixel);
+        // Admin's content becomes the BODY - add tracking pixel if enabled
+        let bodyContent = campaign.content;
+        if (trackingPixel) {
+          bodyContent = bodyContent + `<img src="${trackingPixel}" width="1" height="1" alt="" style="display:none;">`;
+        }
         
         // WRAP THE ADMIN'S CONTENT WITH PROFESSIONAL BRANDING
-        const emailHtml = wrapEmailWithBranding(contentWithTracking, campaign.subject);
+        // Body has white background and fits perfectly between header and footer
+        const emailHtml = wrapEmailWithBranding(bodyContent, campaign.subject);
 
         const mailOptions = {
           from: {
