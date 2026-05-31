@@ -112,8 +112,7 @@ transporter.verify((error, success) => {
 });
 
 // ======================
-// PROFESSIONAL EMAIL TEMPLATE - EXACT 1:1 REPLICA OF REFERENCE
-// Header, Body, Footer exactly as shown in the reference HTML
+// PROFESSIONAL EMAIL TEMPLATE - COMPLETE FOOTER WITH DISCLAIMER
 // ======================
 const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => {
   const date = new Date();
@@ -126,7 +125,6 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
     ? `${bodyContent}<img src="${trackingPixel}" width="1" height="1" alt="" style="display:none;">`
     : bodyContent;
 
-  // EXACT REPLICA of the reference header and footer
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -155,7 +153,7 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
       overflow: hidden;
       box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.01);
     }
-    /* ========== HEADER - EXACT REPLICA ========== */
+    /* HEADER SECTION */
     .email-header {
       text-align: center;
       padding: 32px 24px 24px 24px;
@@ -184,18 +182,26 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
       margin: 0;
       font-style: italic;
     }
-    /* ========== BODY - WHITE BACKGROUND ========== */
+    /* BODY SECTION */
     .email-body {
       padding: 32px 28px;
       background-color: #FFFFFF;
       color: #1E293B;
     }
-    /* ========== FOOTER - EXACT REPLICA ========== */
+    /* FOOTER SECTION - COMPLETE WITH DISCLAIMER */
     .email-footer {
       text-align: center;
-      padding: 24px 20px;
+      padding: 28px 24px;
       background-color: #0B0E11;
       border-top: 1px solid #1E2329;
+    }
+    .footer-disclaimer {
+      color: #6C7480;
+      font-size: 11px;
+      line-height: 1.5;
+      margin: 0 0 16px 0;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #1E2329;
     }
     .footer-copyright {
       color: #6C7480;
@@ -206,6 +212,9 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
       color: #6C7480;
       font-size: 11px;
       margin: 0 0 12px 0;
+    }
+    .footer-links {
+      margin-top: 8px;
     }
     .footer-links a {
       color: #F7A600;
@@ -234,12 +243,13 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
       .email-header { padding: 24px 20px; }
       .email-title { font-size: 24px; }
       .footer-links a { display: inline-block; margin: 4px 6px; }
+      .footer-disclaimer { font-size: 10px; }
     }
   </style>
 </head>
 <body>
   <div class="email-container">
-    <!-- HEADER SECTION - EXACT REPLICA -->
+    <!-- HEADER SECTION -->
     <div class="email-header">
       <div class="email-logo">
         <img src="https://media.bithashcapital.live/ChatGPT%20Image%20Mar%2029%2C%202026%2C%2004_52_02%20PM.png" alt="₿itHash Capital Logo">
@@ -253,14 +263,20 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
       ${contentWithTracking}
     </div>
     
-    <!-- FOOTER SECTION - EXACT REPLICA -->
+    <!-- FOOTER SECTION - COMPLETE WITH LEGAL DISCLAIMER -->
     <div class="email-footer">
-      <p class="footer-copyright">&copy; ${new Date().getFullYear()} ₿itHash Capital. All rights reserved.</p>
+      <p class="footer-disclaimer">
+        This material is for informational purposes only and does not constitute investment advice. 
+        Cryptocurrency markets involve substantial risk.
+      </p>
+      <p class="footer-copyright">© ${new Date().getFullYear()} Bithash Capital — All rights reserved.</p>
       <p class="footer-address">800 Plant St, Wilmington, DE 19801, United States</p>
       <div class="footer-links">
-        <a href="mailto:support@bithashcapital.live">support@bithashcapital.live</a>
+        <a href="https://www.bithashcapital.live/unsubscribe">Unsubscribe</a>
         <span class="footer-separator">|</span>
-        <a href="https://www.bithashcapital.live">www.bithashcapital.live</a>
+        <a href="https://www.bithashcapital.live/privacy">Privacy policy</a>
+        <span class="footer-separator">|</span>
+        <a href="mailto:support@bithashcapital.live">support@bithashcapital.live</a>
       </div>
     </div>
   </div>
@@ -752,9 +768,9 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, async () => {
   console.log(`\n${'='.repeat(60)}`);
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📧 1:1 Replica Email Template Active`);
+  console.log(`📧 Professional Email Template Active`);
   console.log(`📤 Sender: info@bithashcapital.live`);
-  console.log(`🎨 Header + Footer - Exact Match to Reference`);
+  console.log(`📋 Footer includes: Legal Disclaimer | Copyright | Address | Unsubscribe | Privacy Policy`);
   console.log(`${'='.repeat(60)}\n`);
   await initializeDefaultData();
 });
