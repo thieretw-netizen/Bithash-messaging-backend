@@ -103,23 +103,17 @@ const infoTransporter = nodemailer.createTransport({
 
 const transporter = infoTransporter;
 
-// Verify email configuration
 transporter.verify((error, success) => {
   if (error) {
-    console.error('========================================');
-    console.error('EMAIL CONFIGURATION ERROR:', error.message);
-    console.error('========================================');
+    console.error('Email configuration error:', error);
   } else {
-    console.log('========================================');
-    console.log('Email configuration verified successfully!');
-    console.log('Sender address: info@bithashcapital.live');
-    console.log('========================================');
+    console.log('Email server ready. Sender: info@bithashcapital.live');
   }
 });
 
 // ======================
-// PROFESSIONAL EMAIL TEMPLATE - SEAMLESS HEADER, BODY, FOOTER
-// NO BORDERS - Everything flows inline perfectly
+// PROFESSIONAL EMAIL TEMPLATE - EXACT 1:1 REPLICA OF REFERENCE
+// Header, Body, Footer exactly as shown in the reference HTML
 // ======================
 const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => {
   const date = new Date();
@@ -128,17 +122,16 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
     hour: '2-digit', minute: '2-digit', second: '2-digit', timeZoneName: 'short'
   });
 
-  // Add tracking pixel if enabled (invisible 1x1 image)
   const contentWithTracking = trackingPixel
-    ? `${bodyContent}<img src="${trackingPixel}" width="1" height="1" alt="" style="display:none; width:1px; height:1px;">`
+    ? `${bodyContent}<img src="${trackingPixel}" width="1" height="1" alt="" style="display:none;">`
     : bodyContent;
 
+  // EXACT REPLICA of the reference header and footer
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>${subject} | ₿itHash Capital</title>
   <style>
     * {
@@ -146,297 +139,122 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
       padding: 0;
       box-sizing: border-box;
     }
-    
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      background-color: #E8EDF2;
+      background-color: #F1F5F9;
       margin: 0;
-      padding: 30px 0;
+      padding: 20px 0;
       line-height: 1.5;
     }
-    
-    /* Main container - single seamless card */
-    .email-card {
-      max-width: 580px;
+    .email-container {
+      max-width: 600px;
       width: 100%;
       margin: 0 auto;
       background-color: #FFFFFF;
-      border-radius: 0;
+      border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.01);
     }
-    
-    /* ========================================= */
-    /* HEADER - Dark gradient, NO BORDER BOTTOM */
-    /* ========================================= */
-    .header {
-      background: linear-gradient(135deg, #0B0E11 0%, #1A1F2E 100%);
+    /* ========== HEADER - EXACT REPLICA ========== */
+    .email-header {
       text-align: center;
-      padding: 40px 24px 36px 24px;
+      padding: 32px 24px 24px 24px;
+      background: linear-gradient(135deg, #0B0E11 0%, #11151C 100%);
     }
-    
-    .logo {
-      width: 70px;
-      height: 70px;
-      margin: 0 auto 16px auto;
-      display: block;
-      border-radius: 50%;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
-    }
-    
-    .company-name {
-      font-size: 32px;
-      font-weight: 800;
-      color: #FFFFFF;
-      letter-spacing: 1px;
-      margin: 0 0 8px 0;
-    }
-    
-    .bitcoin-gold {
-      color: #F7A600;
-    }
-    
-    .tagline {
-      font-size: 14px;
-      color: #B7BDC6;
-      font-style: italic;
-      margin: 0;
-      font-weight: 400;
-    }
-    
-    /* ========================================= */
-    /* BODY - Pure White Background, NO BORDERS */
-    /* Directly flows from header to footer      */
-    /* ========================================= */
-    .body-content {
-      background-color: #FFFFFF;
-      padding: 40px 32px;
-      color: #1E293B;
-      font-size: 15px;
-      line-height: 1.6;
-    }
-    
-    .body-content p {
+    .email-logo {
+      width: 64px;
+      height: 64px;
       margin-bottom: 16px;
-    }
-    
-    .body-content h1 {
-      font-size: 26px;
-      color: #0B0E11;
-      margin-bottom: 20px;
-      font-weight: 700;
-    }
-    
-    .body-content h2 {
-      font-size: 22px;
-      color: #0B0E11;
-      margin-bottom: 16px;
-      font-weight: 600;
-    }
-    
-    .body-content h3 {
-      font-size: 18px;
-      color: #0B0E11;
-      margin-bottom: 14px;
-      font-weight: 600;
-    }
-    
-    .body-content a {
-      color: #F7A600;
-      text-decoration: none;
-    }
-    
-    .body-content a:hover {
-      text-decoration: underline;
-    }
-    
-    .body-content ul, .body-content ol {
-      margin: 16px 0;
-      padding-left: 24px;
-    }
-    
-    .body-content li {
-      margin-bottom: 8px;
-    }
-    
-    .body-content table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 16px 0;
-    }
-    
-    .body-content th,
-    .body-content td {
-      padding: 12px;
-      border: 1px solid #E2E8F0;
-      text-align: left;
-    }
-    
-    .body-content th {
-      background-color: #F8FAFC;
-      font-weight: 600;
-    }
-    
-    .body-content .btn-link {
       display: inline-block;
-      background-color: #F7A600;
-      color: #0B0E11;
-      padding: 12px 28px;
-      border-radius: 40px;
-      text-decoration: none;
-      font-weight: 600;
-      margin: 16px 0;
     }
-    
-    .body-content .btn-link:hover {
-      background-color: #E09D00;
+    .email-logo img {
+      width: 100%;
+      height: auto;
     }
-    
-    /* ========================================= */
-    /* FOOTER - Dark background, NO BORDER TOP   */
-    /* Direct continuation from body             */
-    /* ========================================= */
-    .footer {
-      background-color: #0B0E11;
+    .email-title {
+      color: #FFFFFF;
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0 0 8px 0;
+      letter-spacing: 0.5px;
+    }
+    .email-tagline {
+      color: #B7BDC6;
+      font-size: 14px;
+      margin: 0;
+      font-style: italic;
+    }
+    /* ========== BODY - WHITE BACKGROUND ========== */
+    .email-body {
+      padding: 32px 28px;
+      background-color: #FFFFFF;
+      color: #1E293B;
+    }
+    /* ========== FOOTER - EXACT REPLICA ========== */
+    .email-footer {
       text-align: center;
-      padding: 32px 24px;
+      padding: 24px 20px;
+      background-color: #0B0E11;
+      border-top: 1px solid #1E2329;
     }
-    
     .footer-copyright {
       color: #6C7480;
       font-size: 12px;
       margin: 0 0 8px 0;
     }
-    
     .footer-address {
       color: #6C7480;
       font-size: 11px;
-      margin: 0 0 16px 0;
+      margin: 0 0 12px 0;
     }
-    
-    .footer-links {
-      margin-top: 8px;
-    }
-    
     .footer-links a {
       color: #F7A600;
       text-decoration: none;
       font-size: 12px;
-      margin: 0 10px;
+      margin: 0 8px;
     }
-    
     .footer-links a:hover {
       text-decoration: underline;
     }
-    
     .footer-separator {
-      color: #4A5568;
+      color: #6C7480;
       font-size: 12px;
     }
-    
-    /* Timestamp - outside the card, subtle */
-    .timestamp {
-      text-align: center;
-      margin-top: 20px;
-      font-size: 10px;
+    .email-timestamp {
       color: #94A3B8;
+      font-size: 10px;
+      text-align: center;
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid #E2E8F0;
     }
-    
-    /* ========================================= */
-    /* RESPONSIVE DESIGN                         */
-    /* ========================================= */
     @media only screen and (max-width: 600px) {
-      body {
-        padding: 15px 0;
-      }
-      
-      .header {
-        padding: 32px 20px 28px 20px;
-      }
-      
-      .body-content {
-        padding: 28px 20px;
-      }
-      
-      .footer {
-        padding: 28px 20px;
-      }
-      
-      .logo {
-        width: 60px;
-        height: 60px;
-      }
-      
-      .company-name {
-        font-size: 28px;
-      }
-      
-      .body-content h1 {
-        font-size: 24px;
-      }
-      
-      .body-content h2 {
-        font-size: 20px;
-      }
-      
-      .footer-links a {
-        display: inline-block;
-        margin: 4px 6px;
-      }
-    }
-    
-    @media only screen and (max-width: 480px) {
-      .header {
-        padding: 28px 16px 24px 16px;
-      }
-      
-      .body-content {
-        padding: 24px 16px;
-      }
-      
-      .footer {
-        padding: 24px 16px;
-      }
-      
-      .logo {
-        width: 55px;
-        height: 55px;
-      }
-      
-      .company-name {
-        font-size: 24px;
-      }
-      
-      .body-content h1 {
-        font-size: 22px;
-      }
-      
-      .body-content {
-        font-size: 14px;
-      }
+      body { padding: 10px 0; }
+      .email-body { padding: 24px 20px; }
+      .email-header { padding: 24px 20px; }
+      .email-title { font-size: 24px; }
+      .footer-links a { display: inline-block; margin: 4px 6px; }
     }
   </style>
 </head>
 <body>
-  <!-- SINGLE SEAMLESS EMAIL CARD - NO BORDERS ANYWHERE -->
-  <div class="email-card">
-    
-    <!-- HEADER SECTION - Dark gradient, flows directly to body -->
-    <div class="header">
-      <img class="logo" src="https://media.bithashcapital.live/ChatGPT%20Image%20Mar%2029%2C%202026%2C%2004_52_02%20PM.png" alt="₿itHash Capital">
-      <h1 class="company-name">
-        <span class="bitcoin-gold">₿</span>itHash
-      </h1>
-      <p class="tagline"><i>Where Your Financial Goals Become Reality</i></p>
+  <div class="email-container">
+    <!-- HEADER SECTION - EXACT REPLICA -->
+    <div class="email-header">
+      <div class="email-logo">
+        <img src="https://media.bithashcapital.live/ChatGPT%20Image%20Mar%2029%2C%202026%2C%2004_52_02%20PM.png" alt="₿itHash Capital Logo">
+      </div>
+      <h1 class="email-title">₿itHash</h1>
+      <p class="email-tagline"><i>Where Your Financial Goals Become Reality</i></p>
     </div>
     
-    <!-- BODY SECTION - Pure white background, NO BORDERS, flows seamlessly -->
-    <div class="body-content">
+    <!-- BODY SECTION - Admin content goes here -->
+    <div class="email-body">
       ${contentWithTracking}
     </div>
     
-    <!-- FOOTER SECTION - Dark background, NO BORDERS, direct continuation -->
-    <div class="footer">
+    <!-- FOOTER SECTION - EXACT REPLICA -->
+    <div class="email-footer">
       <p class="footer-copyright">&copy; ${new Date().getFullYear()} ₿itHash Capital. All rights reserved.</p>
       <p class="footer-address">800 Plant St, Wilmington, DE 19801, United States</p>
       <div class="footer-links">
@@ -445,12 +263,9 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
         <a href="https://www.bithashcapital.live">www.bithashcapital.live</a>
       </div>
     </div>
-    
   </div>
-  
-  <!-- Subtle timestamp below the card -->
-  <div class="timestamp">
-    📧 This email was sent on ${formattedDate}
+  <div class="email-timestamp">
+    This email was sent on ${formattedDate}
   </div>
 </body>
 </html>`;
@@ -460,40 +275,13 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
 // Database Schemas
 // ======================
 
-// Admin User Schema
 const adminUserSchema = new mongoose.Schema({
-  username: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true,
-    minlength: 3,
-    maxlength: 50
-  },
-  password: {
-    type: String,
-    required: true,
-    minlength: 6
-  },
-  name: {
-    type: String,
-    required: true,
-    trim: true,
-    maxlength: 100
-  },
-  role: {
-    type: String,
-    default: 'admin',
-    enum: ['admin', 'superadmin']
-  },
-  lastLogin: {
-    type: Date,
-    default: Date.now
-  },
-  isActive: {
-    type: Boolean,
-    default: true
-  }
+  username: { type: String, required: true, unique: true, trim: true, minlength: 3, maxlength: 50 },
+  password: { type: String, required: true, minlength: 6 },
+  name: { type: String, required: true, trim: true, maxlength: 100 },
+  role: { type: String, default: 'admin', enum: ['admin', 'superadmin'] },
+  lastLogin: { type: Date, default: Date.now },
+  isActive: { type: Boolean, default: true }
 }, { timestamps: true });
 
 adminUserSchema.pre('save', async function(next) {
@@ -502,7 +290,6 @@ adminUserSchema.pre('save', async function(next) {
   next();
 });
 
-// Investor Schema
 const investorSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true, lowercase: true, validate: [validator.isEmail, 'Please provide a valid email'] },
   name: { type: String, required: true, trim: true, maxlength: 100 },
@@ -517,7 +304,6 @@ const investorSchema = new mongoose.Schema({
   tags: [String]
 }, { timestamps: true });
 
-// Email Template Schema
 const emailTemplateSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true, maxlength: 100 },
   subject: { type: String, required: true, trim: true, maxlength: 200 },
@@ -528,7 +314,6 @@ const emailTemplateSchema = new mongoose.Schema({
   lastUsed: Date
 }, { timestamps: true });
 
-// Email Campaign Schema
 const emailCampaignSchema = new mongoose.Schema({
   subject: { type: String, required: true, trim: true, maxlength: 200 },
   content: { type: String, required: true },
@@ -550,7 +335,6 @@ const emailCampaignSchema = new mongoose.Schema({
   metadata: { ipAddress: String, userAgent: String }
 }, { timestamps: true });
 
-// Tracking Pixel Schema
 const trackingPixelSchema = new mongoose.Schema({
   campaignId: { type: mongoose.Schema.Types.ObjectId, ref: 'EmailCampaign', required: true },
   recipientId: { type: mongoose.Schema.Types.ObjectId, required: true },
@@ -559,7 +343,6 @@ const trackingPixelSchema = new mongoose.Schema({
   userAgent: String
 }, { timestamps: true });
 
-// Models
 const AdminUser = mongoose.model('AdminUser', adminUserSchema);
 const Investor = mongoose.model('Investor', investorSchema);
 const EmailTemplate = mongoose.model('EmailTemplate', emailTemplateSchema);
@@ -573,14 +356,10 @@ const authenticateToken = async (req, res, next) => {
   try {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
-    if (!token) {
-      return res.status(401).json({ status: 'error', message: 'Access token required' });
-    }
+    if (!token) return res.status(401).json({ status: 'error', message: 'Access token required' });
     const decoded = jwt.verify(token, JWT_SECRET);
     const user = await AdminUser.findById(decoded.id).select('-password');
-    if (!user || !user.isActive) {
-      return res.status(401).json({ status: 'error', message: 'User not found or inactive' });
-    }
+    if (!user || !user.isActive) return res.status(401).json({ status: 'error', message: 'User not found or inactive' });
     req.user = user;
     next();
   } catch (error) {
@@ -592,26 +371,18 @@ const authenticateToken = async (req, res, next) => {
 // API Routes
 // ======================
 
-// Health Check
 app.get('/health', (req, res) => {
   res.json({ status: 'success', message: 'Server is running smoothly', timestamp: new Date().toISOString(), uptime: process.uptime() });
 });
 
-// Admin Login
 app.post('/admin/login', async (req, res) => {
   try {
     const { username, password } = req.body;
-    if (!username || !password) {
-      return res.status(400).json({ status: 'error', message: 'Username and password are required' });
-    }
+    if (!username || !password) return res.status(400).json({ status: 'error', message: 'Username and password are required' });
     const user = await AdminUser.findOne({ username, isActive: true });
-    if (!user) {
-      return res.status(401).json({ status: 'error', message: 'Invalid credentials' });
-    }
+    if (!user) return res.status(401).json({ status: 'error', message: 'Invalid credentials' });
     const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      return res.status(401).json({ status: 'error', message: 'Invalid credentials' });
-    }
+    if (!isPasswordValid) return res.status(401).json({ status: 'error', message: 'Invalid credentials' });
     user.lastLogin = new Date();
     await user.save();
     const token = jwt.sign({ id: user._id, username: user.username, role: user.role }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
@@ -622,7 +393,6 @@ app.post('/admin/login', async (req, res) => {
   }
 });
 
-// Dashboard Statistics
 app.get('/admin/stats', authenticateToken, async (req, res) => {
   try {
     const totalInvestors = await Investor.countDocuments({ status: 'active' });
@@ -641,7 +411,6 @@ app.get('/admin/stats', authenticateToken, async (req, res) => {
   }
 });
 
-// Investors Management
 app.get('/admin/investors', authenticateToken, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -662,7 +431,6 @@ app.get('/admin/investors', authenticateToken, async (req, res) => {
   }
 });
 
-// Get all investors for selection
 app.get('/admin/investors/all', authenticateToken, async (req, res) => {
   try {
     const investors = await Investor.find({ status: 'active' }).select('name email').sort({ name: 1 });
@@ -673,13 +441,10 @@ app.get('/admin/investors/all', authenticateToken, async (req, res) => {
   }
 });
 
-// Send Email Campaign
 app.post('/admin/send-email', authenticateToken, async (req, res) => {
   try {
     const { recipients, subject, content, enableTracking = true, scheduleEmail = false, scheduleDate = null, saveAsTemplate = false, templateName = null, templateId = null } = req.body;
-    if (!subject || !content) {
-      return res.status(400).json({ status: 'error', message: 'Subject and content are required' });
-    }
+    if (!subject || !content) return res.status(400).json({ status: 'error', message: 'Subject and content are required' });
     let recipientInvestors = [];
     if (Array.isArray(recipients) && recipients.length > 0) {
       if (typeof recipients[0] === 'string' && recipients[0].includes('@')) {
@@ -690,9 +455,7 @@ app.post('/admin/send-email', authenticateToken, async (req, res) => {
     } else {
       recipientInvestors = await Investor.find({ status: 'active' });
     }
-    if (recipientInvestors.length === 0) {
-      return res.status(400).json({ status: 'error', message: 'No valid recipients found' });
-    }
+    if (recipientInvestors.length === 0) return res.status(400).json({ status: 'error', message: 'No valid recipients found' });
     const campaign = new EmailCampaign({
       subject, content,
       recipients: recipientInvestors.map(inv => ({ investorId: inv._id || null, email: inv.email, name: inv.name || inv.email, status: 'sent' })),
@@ -704,9 +467,7 @@ app.post('/admin/send-email', authenticateToken, async (req, res) => {
       const template = new EmailTemplate({ name: templateName, subject, content, category: 'general' });
       await template.save();
     }
-    if (!scheduleEmail) {
-      await sendEmailCampaign(campaign);
-    }
+    if (!scheduleEmail) await sendEmailCampaign(campaign);
     res.json({ status: 'success', message: `Email campaign created successfully. ${recipientInvestors.length} recipients.`, data: { campaignId: campaign._id, recipientCount: recipientInvestors.length, scheduled: scheduleEmail } });
   } catch (error) {
     console.error('Send email error:', error);
@@ -714,16 +475,11 @@ app.post('/admin/send-email', authenticateToken, async (req, res) => {
   }
 });
 
-// Upload Excel and Send Emails
 app.post('/admin/send-bulk-email', authenticateToken, async (req, res) => {
   try {
     const { excelData, subject, content, enableTracking = true } = req.body;
-    if (!subject || !content) {
-      return res.status(400).json({ status: 'error', message: 'Subject and content are required' });
-    }
-    if (!excelData || !Array.isArray(excelData)) {
-      return res.status(400).json({ status: 'error', message: 'Valid Excel data is required' });
-    }
+    if (!subject || !content) return res.status(400).json({ status: 'error', message: 'Subject and content are required' });
+    if (!excelData || !Array.isArray(excelData)) return res.status(400).json({ status: 'error', message: 'Valid Excel data is required' });
     const emails = [];
     excelData.forEach(row => {
       for (let key in row) {
@@ -733,9 +489,7 @@ app.post('/admin/send-bulk-email', authenticateToken, async (req, res) => {
         }
       }
     });
-    if (emails.length === 0) {
-      return res.status(400).json({ status: 'error', message: 'No valid email addresses found in the Excel file' });
-    }
+    if (emails.length === 0) return res.status(400).json({ status: 'error', message: 'No valid email addresses found in the Excel file' });
     const recipientInvestors = emails.map(email => ({ email, name: email }));
     const campaign = new EmailCampaign({
       subject, content,
@@ -751,7 +505,6 @@ app.post('/admin/send-bulk-email', authenticateToken, async (req, res) => {
   }
 });
 
-// Email History
 app.get('/admin/emails', authenticateToken, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -777,7 +530,6 @@ app.get('/admin/emails', authenticateToken, async (req, res) => {
   }
 });
 
-// Templates Management
 app.get('/admin/templates', authenticateToken, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -796,7 +548,6 @@ app.get('/admin/templates', authenticateToken, async (req, res) => {
   }
 });
 
-// Get specific template
 app.get('/admin/templates/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
@@ -809,13 +560,10 @@ app.get('/admin/templates/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// Create template
 app.post('/admin/templates', authenticateToken, async (req, res) => {
   try {
     const { name, subject, content, category = 'general' } = req.body;
-    if (!name || !subject || !content) {
-      return res.status(400).json({ status: 'error', message: 'Name, subject, and content are required' });
-    }
+    if (!name || !subject || !content) return res.status(400).json({ status: 'error', message: 'Name, subject, and content are required' });
     const template = new EmailTemplate({ name, subject, content, category });
     await template.save();
     res.json({ status: 'success', message: 'Template saved successfully', data: { template } });
@@ -825,7 +573,6 @@ app.post('/admin/templates', authenticateToken, async (req, res) => {
   }
 });
 
-// Update template
 app.put('/admin/templates/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
@@ -839,7 +586,6 @@ app.put('/admin/templates/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// Delete template
 app.delete('/admin/templates/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
@@ -852,7 +598,6 @@ app.delete('/admin/templates/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// Analytics
 app.get('/admin/analytics', authenticateToken, async (req, res) => {
   try {
     const period = parseInt(req.query.period) || 30;
@@ -874,7 +619,6 @@ app.get('/admin/analytics', authenticateToken, async (req, res) => {
   }
 });
 
-// Tracking Pixel
 app.get('/track/:campaignId/:recipientId', async (req, res) => {
   try {
     const { campaignId, recipientId } = req.params;
@@ -892,7 +636,6 @@ app.get('/track/:campaignId/:recipientId', async (req, res) => {
   }
 });
 
-// Export endpoints
 app.get('/admin/export/investors', authenticateToken, async (req, res) => {
   try {
     const investors = await Investor.find({}).sort({ joinDate: -1 }).select('name email phone country joinDate tier status totalInvested');
@@ -927,28 +670,22 @@ app.get('/admin/export/emails', authenticateToken, async (req, res) => {
 });
 
 // ======================
-// Helper Function: Send Email Campaign
+// Send Email Campaign Helper
 // ======================
 async function sendEmailCampaign(campaign) {
-  console.log('========================================');
-  console.log('Starting email campaign:', campaign._id);
-  console.log(`Total recipients: ${campaign.recipients.length}`);
+  console.log(`Starting email campaign: ${campaign._id}`);
+  console.log(`Recipients: ${campaign.recipients.length}`);
   console.log(`Sender: info@bithashcapital.live`);
-  console.log('Email template: Seamless Header + White Body + Footer (NO BORDERS)');
-  console.log('========================================');
 
   try {
     let successCount = 0, failCount = 0;
     for (const recipient of campaign.recipients) {
       try {
-        console.log(`[${new Date().toISOString()}] Sending to: ${recipient.email}`);
-
         let trackingPixel = null;
         if (campaign.enableTracking) {
           trackingPixel = `${process.env.API_BASE_URL || 'https://tiktok-com-shop.onrender.com'}/track/${campaign._id}/${recipient._id}`;
         }
 
-        // Create seamless professional email - NO BORDERS, flows inline
         const emailHtml = createProfessionalEmail(campaign.subject, campaign.content, trackingPixel);
 
         await transporter.sendMail({
@@ -1015,9 +752,9 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, async () => {
   console.log(`\n${'='.repeat(60)}`);
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📧 Seamless Email Template Active`);
+  console.log(`📧 1:1 Replica Email Template Active`);
   console.log(`📤 Sender: info@bithashcapital.live`);
-  console.log(`🎨 Header + White Body + Footer - NO BORDERS, Flows Inline`);
+  console.log(`🎨 Header + Footer - Exact Match to Reference`);
   console.log(`${'='.repeat(60)}\n`);
   await initializeDefaultData();
 });
