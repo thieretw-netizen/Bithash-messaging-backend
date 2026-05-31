@@ -255,7 +255,7 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
       <div class="email-logo">
         <img src="https://media.bithashcapital.live/ChatGPT%20Image%20Mar%2029%2C%202026%2C%2004_52_02%20PM.png" alt="₿itHash Capital Logo">
       </div>
-      <h1 class="email-title">₿itHash</h1>
+      <h1 class="email-title">₿itHash Capital</h1>
       <p class="email-tagline"><i><strong>Where Your Financial Goals Become Reality</strong></i></p>
     </div>
     
