@@ -112,7 +112,7 @@ transporter.verify((error, success) => {
 });
 
 // ======================
-// PROFESSIONAL EMAIL TEMPLATE - COMPLETE FOOTER WITH DISCLAIMER
+// PROFESSIONAL EMAIL TEMPLATE - (₿itHash) Branding Throughout
 // ======================
 const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => {
   const date = new Date();
@@ -130,7 +130,7 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${subject} | ₿itHash Capital</title>
+  <title>${subject} | (₿itHash) Capital</title>
   <style>
     * {
       margin: 0;
@@ -188,7 +188,7 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
       background-color: #FFFFFF;
       color: #1E293B;
     }
-    /* FOOTER SECTION - COMPLETE WITH DISCLAIMER */
+    /* FOOTER SECTION */
     .email-footer {
       text-align: center;
       padding: 28px 24px;
@@ -252,9 +252,9 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
     <!-- HEADER SECTION -->
     <div class="email-header">
       <div class="email-logo">
-        <img src="https://media.bithashcapital.live/ChatGPT%20Image%20Mar%2029%2C%202026%2C%2004_52_02%20PM.png" alt="₿itHash Capital Logo">
+        <img src="https://media.bithashcapital.live/ChatGPT%20Image%20Mar%2029%2C%202026%2C%2004_52_02%20PM.png" alt="(₿itHash) Capital Logo">
       </div>
-      <h1 class="email-title">₿itHash</h1>
+      <h1 class="email-title">(₿itHash)</h1>
       <p class="email-tagline"><i>Where Your Financial Goals Become Reality</i></p>
     </div>
     
@@ -263,13 +263,13 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
       ${contentWithTracking}
     </div>
     
-    <!-- FOOTER SECTION - COMPLETE WITH LEGAL DISCLAIMER -->
+    <!-- FOOTER SECTION -->
     <div class="email-footer">
       <p class="footer-disclaimer">
         This material is for informational purposes only and does not constitute investment advice. 
         Cryptocurrency markets involve substantial risk.
       </p>
-      <p class="footer-copyright">© ${new Date().getFullYear()} Bithash Capital — All rights reserved.</p>
+      <p class="footer-copyright">© ${new Date().getFullYear()} (₿itHash) Capital — All rights reserved.</p>
       <p class="footer-address">800 Plant St, Wilmington, DE 19801, United States</p>
       <div class="footer-links">
         <a href="https://www.bithashcapital.live/unsubscribe">Unsubscribe</a>
@@ -388,7 +388,7 @@ const authenticateToken = async (req, res, next) => {
 // ======================
 
 app.get('/health', (req, res) => {
-  res.json({ status: 'success', message: 'Server is running smoothly', timestamp: new Date().toISOString(), uptime: process.uptime() });
+  res.json({ status: 'success', message: '(₿itHash) Capital server is running smoothly', timestamp: new Date().toISOString(), uptime: process.uptime() });
 });
 
 app.post('/admin/login', async (req, res) => {
@@ -705,7 +705,7 @@ async function sendEmailCampaign(campaign) {
         const emailHtml = createProfessionalEmail(campaign.subject, campaign.content, trackingPixel);
 
         await transporter.sendMail({
-          from: { name: 'BitHash Capital', address: 'info@bithashcapital.live' },
+          from: { name: '(₿itHash) Capital', address: 'info@bithashcapital.live' },
           to: recipient.email,
           subject: campaign.subject,
           html: emailHtml,
@@ -742,6 +742,7 @@ async function initializeDefaultData() {
     if (adminCount === 0) {
       await AdminUser.create({ username: 'admin', password: 'admin123', name: 'System Administrator', role: 'superadmin' });
       console.log('Default admin user created: admin / admin123');
+      console.log('(₿itHash) Capital admin panel ready');
     }
     console.log('Default data initialized');
   } catch (error) {
@@ -767,10 +768,11 @@ app.use('*', (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, async () => {
   console.log(`\n${'='.repeat(60)}`);
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🚀 (₿itHash) Capital Server running on port ${PORT}`);
   console.log(`📧 Professional Email Template Active`);
   console.log(`📤 Sender: info@bithashcapital.live`);
   console.log(`📋 Footer includes: Legal Disclaimer | Copyright | Address | Unsubscribe | Privacy Policy`);
+  console.log(`🏷️ Branding: (₿itHash) Capital throughout`);
   console.log(`${'='.repeat(60)}\n`);
   await initializeDefaultData();
 });
