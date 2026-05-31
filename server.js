@@ -112,7 +112,7 @@ transporter.verify((error, success) => {
 });
 
 // ======================
-// PROFESSIONAL EMAIL TEMPLATE - ₿itHash Branding
+// PROFESSIONAL EMAIL TEMPLATE - ₿itHash Branding with Bold Tagline
 // ======================
 const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => {
   const date = new Date();
@@ -180,6 +180,7 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
       color: #B7BDC6;
       font-size: 14px;
       margin: 0;
+      font-weight: 700;
       font-style: italic;
     }
     /* BODY SECTION */
@@ -255,7 +256,7 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
         <img src="https://media.bithashcapital.live/ChatGPT%20Image%20Mar%2029%2C%202026%2C%2004_52_02%20PM.png" alt="₿itHash Capital Logo">
       </div>
       <h1 class="email-title">₿itHash</h1>
-      <p class="email-tagline"><i>Where Your Financial Goals Become Reality</i></p>
+      <p class="email-tagline"><i><strong>Where Your Financial Goals Become Reality</strong></i></p>
     </div>
     
     <!-- BODY SECTION - Admin content goes here -->
@@ -773,6 +774,7 @@ app.listen(PORT, async () => {
   console.log(`📤 Sender: info@bithashcapital.live`);
   console.log(`📋 Footer includes: Legal Disclaimer | Copyright | Address | Unsubscribe | Privacy Policy`);
   console.log(`🏷️ Branding: ₿itHash Capital throughout`);
+  console.log(`💪 Tagline: "Where Your Financial Goals Become Reality" (BOLD)`);
   console.log(`${'='.repeat(60)}\n`);
   await initializeDefaultData();
 });
