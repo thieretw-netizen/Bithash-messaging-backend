@@ -77,7 +77,7 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
 // ======================
 // MongoDB Connection
 // ======================
-mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://mekitariansalinacoria8_db_user:PTd4blzgRclmyuV8@cluster0.fvvirw2.mongodb.net/?appName=Cluster0')
+mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://pesalifeke:_d84QE_x2k763Q#@cryptotradingmarket.dpoatp3.mongodb.net/?appName=cryptotradingmarket')
   .then(() => console.log('MongoDB connected successfully'))
   .catch(err => {
     console.error('MongoDB connection error:', err);
