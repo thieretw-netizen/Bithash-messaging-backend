@@ -115,13 +115,13 @@ const supportTransporter = createTransporter(
   process.env.EMAIL_SUPPORT_PASS
 );
 
-const transporter = infoTransporter;
+const transporter = supportTransporter;
 
 transporter.verify((error, success) => {
   if (error) {
     console.error('Email configuration error:', error);
   } else {
-    console.log('Email server ready. Sender: info@bithashcapital.live');
+    console.log('Email server ready. Sender: support@bithashcapital.live');
   }
 });
 
@@ -706,7 +706,7 @@ app.get('/admin/export/emails', authenticateToken, async (req, res) => {
 async function sendEmailCampaign(campaign) {
   console.log(`Starting email campaign: ${campaign._id}`);
   console.log(`Recipients: ${campaign.recipients.length}`);
-  console.log(`Sender: info@bithashcapital.live`);
+  console.log(`Sender: support@bithashcapital.live`);
 
   try {
     let successCount = 0, failCount = 0;
@@ -720,11 +720,11 @@ async function sendEmailCampaign(campaign) {
         const emailHtml = createProfessionalEmail(campaign.subject, campaign.content, trackingPixel);
 
         await transporter.sendMail({
-          from: { name: '₿itHash Capital', address: 'info@bithashcapital.live' },
+          from: { name: '₿itHash Capital', address: 'support@bithashcapital.live' },
           to: recipient.email,
           subject: campaign.subject,
           html: emailHtml,
-          headers: { 'X-Campaign-ID': campaign._id.toString(), 'X-Recipient-ID': recipient._id.toString(), 'X-Transporter': 'INFO' }
+          headers: { 'X-Campaign-ID': campaign._id.toString(), 'X-Recipient-ID': recipient._id.toString(), 'X-Transporter': 'SUPPORT' }
         });
 
         console.log(`✓ Sent to: ${recipient.email}`);
@@ -785,7 +785,7 @@ app.listen(PORT, async () => {
   console.log(`\n${'='.repeat(60)}`);
   console.log(`🚀 ₿itHash Capital Server running on port ${PORT}`);
   console.log(`📧 Professional Email Template Active`);
-  console.log(`📤 Sender: info@bithashcapital.live`);
+  console.log(`📤 Sender: support@bithashcapital.live`);
   console.log(`📋 Footer includes: Legal Disclaimer | Copyright | Address | Unsubscribe | Privacy Policy`);
   console.log(`🏷️ Branding: ₿itHash Capital throughout`);
   console.log(`💪 Tagline: "Where Your Financial Goals Become Reality" (BOLD)`);
