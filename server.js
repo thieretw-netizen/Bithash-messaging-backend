@@ -87,19 +87,33 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://pesalifeke:_d84QE_x2k
 // ======================
 // Email Configuration - Using only info transporter
 // ======================
-const infoTransporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST,
-  port: process.env.EMAIL_PORT,
-  secure: process.env.EMAIL_SECURE === 'true',
-  auth: {
-    user: process.env.EMAIL_INFO_USER,
-    pass: process.env.EMAIL_INFO_PASS
-  },
-  tls: { rejectUnauthorized: false },
-  pool: true,
-  maxConnections: 5,
-  maxMessages: 100
-});
+const createTransporter = (user, pass) => {
+  return nodemailer.createTransport({
+    host: process.env.EMAIL_HOST,
+    port: process.env.EMAIL_PORT,
+    secure: process.env.EMAIL_SECURE === 'true',
+    auth: {
+      user: user,
+      pass: pass
+    },
+    tls: {
+      rejectUnauthorized: false
+    },
+    pool: true,
+    maxConnections: 5,
+    maxMessages: 100
+  });
+};
+
+const infoTransporter = createTransporter(
+  process.env.EMAIL_INFO_USER,
+  process.env.EMAIL_INFO_PASS
+);
+
+const supportTransporter = createTransporter(
+  process.env.EMAIL_SUPPORT_USER,
+  process.env.EMAIL_SUPPORT_PASS
+);
 
 const transporter = infoTransporter;
 
