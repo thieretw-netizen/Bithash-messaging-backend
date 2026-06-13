@@ -476,20 +476,46 @@ app.post('/admin/send-email', authenticateToken, async (req, res) => {
   try {
     const { recipients, subject, content, enableTracking = true, scheduleEmail = false, scheduleDate = null, saveAsTemplate = false, templateName = null, templateId = null } = req.body;
     if (!subject || !content) return res.status(400).json({ status: 'error', message: 'Subject and content are required' });
+    
     let recipientInvestors = [];
     if (Array.isArray(recipients) && recipients.length > 0) {
       if (typeof recipients[0] === 'string' && recipients[0].includes('@')) {
-        recipientInvestors = recipients.map(email => ({ email, name: email }));
+        // Deduplicate email addresses in manual mode
+        const uniqueEmails = [...new Set(recipients)];
+        if (uniqueEmails.length !== recipients.length) {
+          console.log(`Removed ${recipients.length - uniqueEmails.length} duplicate email(s) from manual recipients`);
+        }
+        recipientInvestors = uniqueEmails.map(email => ({ email, name: email }));
       } else {
-        recipientInvestors = await Investor.find({ _id: { $in: recipients }, status: 'active' });
+        // Deduplicate investor IDs
+        const uniqueRecipientIds = [...new Set(recipients)];
+        if (uniqueRecipientIds.length !== recipients.length) {
+          console.log(`Removed ${recipients.length - uniqueRecipientIds.length} duplicate investor ID(s) from selected investors`);
+        }
+        recipientInvestors = await Investor.find({ _id: { $in: uniqueRecipientIds }, status: 'active' });
       }
     } else {
       recipientInvestors = await Investor.find({ status: 'active' });
     }
-    if (recipientInvestors.length === 0) return res.status(400).json({ status: 'error', message: 'No valid recipients found' });
+    
+    // Final deduplication by email address to ensure no duplicate receives email
+    const uniqueEmailMap = new Map();
+    for (const inv of recipientInvestors) {
+      if (!uniqueEmailMap.has(inv.email)) {
+        uniqueEmailMap.set(inv.email, inv);
+      }
+    }
+    const finalRecipients = Array.from(uniqueEmailMap.values());
+    const totalDuplicatesRemoved = recipientInvestors.length - finalRecipients.length;
+    if (totalDuplicatesRemoved > 0) {
+      console.log(`Removed ${totalDuplicatesRemoved} duplicate email address(es) from final recipient list. Each recipient will receive exactly one email.`);
+    }
+    
+    if (finalRecipients.length === 0) return res.status(400).json({ status: 'error', message: 'No valid recipients found' });
+    
     const campaign = new EmailCampaign({
       subject, content,
-      recipients: recipientInvestors.map(inv => ({ investorId: inv._id || null, email: inv.email, name: inv.name || inv.email, status: 'sent' })),
+      recipients: finalRecipients.map(inv => ({ investorId: inv._id || null, email: inv.email, name: inv.name || inv.email, status: 'sent' })),
       sentBy: req.user._id, enableTracking, status: scheduleEmail ? 'scheduled' : 'sent',
       scheduledFor: scheduleEmail ? new Date(scheduleDate) : null, templateId: templateId || null
     });
@@ -499,7 +525,7 @@ app.post('/admin/send-email', authenticateToken, async (req, res) => {
       await template.save();
     }
     if (!scheduleEmail) await sendEmailCampaign(campaign);
-    res.json({ status: 'success', message: `Email campaign created successfully. ${recipientInvestors.length} recipients.`, data: { campaignId: campaign._id, recipientCount: recipientInvestors.length, scheduled: scheduleEmail } });
+    res.json({ status: 'success', message: `Email campaign created successfully. ${finalRecipients.length} recipients.`, data: { campaignId: campaign._id, recipientCount: finalRecipients.length, scheduled: scheduleEmail } });
   } catch (error) {
     console.error('Send email error:', error);
     res.status(500).json({ status: 'error', message: 'Failed to send email campaign' });
@@ -521,7 +547,14 @@ app.post('/admin/send-bulk-email', authenticateToken, async (req, res) => {
       }
     });
     if (emails.length === 0) return res.status(400).json({ status: 'error', message: 'No valid email addresses found in the Excel file' });
-    const recipientInvestors = emails.map(email => ({ email, name: email }));
+    
+    // Deduplicate emails from Excel file
+    const uniqueEmails = [...new Set(emails)];
+    if (uniqueEmails.length !== emails.length) {
+      console.log(`Removed ${emails.length - uniqueEmails.length} duplicate email(s) from Excel file`);
+    }
+    
+    const recipientInvestors = uniqueEmails.map(email => ({ email, name: email }));
     const campaign = new EmailCampaign({
       subject, content,
       recipients: recipientInvestors.map(inv => ({ email: inv.email, name: inv.name || inv.email, status: 'sent' })),
@@ -710,7 +743,16 @@ async function sendEmailCampaign(campaign) {
 
   try {
     let successCount = 0, failCount = 0;
+    // Track sent emails by email address to ensure no duplicate sends within same campaign
+    const sentEmailsSet = new Set();
+    
     for (const recipient of campaign.recipients) {
+      // Skip if this email has already been sent in this campaign
+      if (sentEmailsSet.has(recipient.email)) {
+        console.log(`⚠ Skipping duplicate email: ${recipient.email} - already sent in this campaign`);
+        continue;
+      }
+      
       try {
         let trackingPixel = null;
         if (campaign.enableTracking) {
@@ -728,6 +770,7 @@ async function sendEmailCampaign(campaign) {
         });
 
         console.log(`✓ Sent to: ${recipient.email}`);
+        sentEmailsSet.add(recipient.email);
         successCount++;
         await EmailCampaign.updateOne({ _id: campaign._id, 'recipients._id': recipient._id }, { $set: { 'recipients.$.status': 'delivered' } });
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -740,7 +783,7 @@ async function sendEmailCampaign(campaign) {
     campaign.status = 'sent';
     campaign.sentAt = new Date();
     await campaign.save();
-    console.log(`Campaign completed: ${successCount} sent, ${failCount} failed`);
+    console.log(`Campaign completed: ${successCount} sent, ${failCount} failed, ${campaign.recipients.length - successCount - failCount} duplicates skipped`);
   } catch (error) {
     console.error('Campaign error:', error);
     campaign.status = 'failed';
