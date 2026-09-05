@@ -143,7 +143,7 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${subject} | ₿itHash Capital</title>
   <style>
     * {
@@ -155,17 +155,17 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       background-color: #F1F5F9;
       margin: 0;
-      padding: 20px 0;
+      padding: 0;
       line-height: 1.5;
-      width: 100%;
-      min-width: 100%;
+      width: 100% !important;
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
     }
     .email-container {
       max-width: 600px;
       width: 100%;
       margin: 0 auto;
       background-color: #FFFFFF;
-      border-radius: 16px;
       overflow: hidden;
       box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.01);
     }
@@ -174,8 +174,6 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
       text-align: center;
       padding: 32px 24px 24px 24px;
       background: linear-gradient(135deg, #0B0E11 0%, #11151C 100%);
-      width: 100%;
-      box-sizing: border-box;
     }
     .email-logo {
       width: 64px;
@@ -206,8 +204,6 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
       padding: 32px 28px;
       background-color: #FFFFFF;
       color: #1E293B;
-      width: 100%;
-      box-sizing: border-box;
     }
     /* FOOTER SECTION */
     .email-footer {
@@ -215,8 +211,6 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
       padding: 28px 24px;
       background-color: #0B0E11;
       border-top: 1px solid #1E2329;
-      width: 100%;
-      box-sizing: border-box;
     }
     .footer-disclaimer {
       color: #6C7480;
@@ -259,30 +253,26 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
       margin-top: 24px;
       padding-top: 20px;
       border-top: 1px solid #E2E8F0;
-      width: 100%;
-      box-sizing: border-box;
     }
     @media only screen and (max-width: 600px) {
       body { 
-        padding: 10px 0; 
-        width: 100%;
-        min-width: 100%;
+        padding: 0 !important; 
+        margin: 0 !important;
+        width: 100% !important;
+        background-color: #F1F5F9 !important;
       }
-      .email-container {
-        width: 100%;
-        max-width: 100%;
-        border-radius: 0;
-        margin: 0;
+      .email-container { 
+        max-width: 100% !important; 
+        width: 100% !important; 
+        margin: 0 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
       }
       .email-body { 
-        padding: 24px 20px;
-        width: 100%;
-        box-sizing: border-box;
+        padding: 24px 20px; 
       }
       .email-header { 
-        padding: 24px 20px;
-        width: 100%;
-        box-sizing: border-box;
+        padding: 24px 20px; 
       }
       .email-title { 
         font-size: 24px; 
@@ -295,14 +285,11 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
         font-size: 10px; 
       }
       .email-footer {
-        padding: 28px 20px;
-        width: 100%;
-        box-sizing: border-box;
+        padding: 20px 16px;
       }
       .email-timestamp {
-        width: 100%;
-        box-sizing: border-box;
-        padding: 20px 15px;
+        padding: 16px 20px;
+        margin: 0;
       }
     }
   </style>
