@@ -143,7 +143,7 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>${subject} | ₿itHash Capital</title>
   <style>
     * {
@@ -157,6 +157,8 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
       margin: 0;
       padding: 20px 0;
       line-height: 1.5;
+      width: 100%;
+      min-width: 100%;
     }
     .email-container {
       max-width: 600px;
@@ -172,6 +174,8 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
       text-align: center;
       padding: 32px 24px 24px 24px;
       background: linear-gradient(135deg, #0B0E11 0%, #11151C 100%);
+      width: 100%;
+      box-sizing: border-box;
     }
     .email-logo {
       width: 64px;
@@ -202,6 +206,8 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
       padding: 32px 28px;
       background-color: #FFFFFF;
       color: #1E293B;
+      width: 100%;
+      box-sizing: border-box;
     }
     /* FOOTER SECTION */
     .email-footer {
@@ -209,6 +215,8 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
       padding: 28px 24px;
       background-color: #0B0E11;
       border-top: 1px solid #1E2329;
+      width: 100%;
+      box-sizing: border-box;
     }
     .footer-disclaimer {
       color: #6C7480;
@@ -251,14 +259,51 @@ const createProfessionalEmail = (subject, bodyContent, trackingPixel = null) => 
       margin-top: 24px;
       padding-top: 20px;
       border-top: 1px solid #E2E8F0;
+      width: 100%;
+      box-sizing: border-box;
     }
     @media only screen and (max-width: 600px) {
-      body { padding: 10px 0; }
-      .email-body { padding: 24px 20px; }
-      .email-header { padding: 24px 20px; }
-      .email-title { font-size: 24px; }
-      .footer-links a { display: inline-block; margin: 4px 6px; }
-      .footer-disclaimer { font-size: 10px; }
+      body { 
+        padding: 10px 0; 
+        width: 100%;
+        min-width: 100%;
+      }
+      .email-container {
+        width: 100%;
+        max-width: 100%;
+        border-radius: 0;
+        margin: 0;
+      }
+      .email-body { 
+        padding: 24px 20px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      .email-header { 
+        padding: 24px 20px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      .email-title { 
+        font-size: 24px; 
+      }
+      .footer-links a { 
+        display: inline-block; 
+        margin: 4px 6px; 
+      }
+      .footer-disclaimer { 
+        font-size: 10px; 
+      }
+      .email-footer {
+        padding: 28px 20px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      .email-timestamp {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 20px 15px;
+      }
     }
   </style>
 </head>
