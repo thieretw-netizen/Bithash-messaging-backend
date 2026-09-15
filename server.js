@@ -384,8 +384,20 @@ const emailCampaignSchema = new mongoose.Schema({
     investorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Investor' },
     email: String,
     name: String,
-    status: { type: String, default: 'sent', enum: ['sent', 'delivered', 'opened', 'failed'] },
+    status: {
+      type: String,
+      default: 'queued',
+      enum: ['queued', 'sent', 'delivered', 'opened', 'bounced', 'failed']
+    },
+    messageId: { type: String, index: true },
+    queuedAt: Date,
+    sentAt: Date,
+    deliveredAt: Date,
     openedAt: Date,
+    lastOpenedAt: Date,
+    openCount: { type: Number, default: 0 },
+    deliveryEvents: { type: Number, default: 0 },
+    lastDeliveryEventAt: Date,
     error: String
   }],
   sentBy: { type: mongoose.Schema.Types.ObjectId, ref: 'AdminUser', required: true },
@@ -399,18 +411,28 @@ const emailCampaignSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 const trackingPixelSchema = new mongoose.Schema({
-  campaignId: { type: mongoose.Schema.Types.ObjectId, ref: 'EmailCampaign', required: true },
-  recipientId: { type: mongoose.Schema.Types.ObjectId, required: true },
-  openedAt: { type: Date, default: Date.now },
+  campaignId: { type: mongoose.Schema.Types.ObjectId, ref: 'EmailCampaign', required: true, index: true },
+  recipientId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
+  event: { type: String, enum: ['open', 'delivery'], default: 'open', index: true },
+  occurredAt: { type: Date, default: Date.now, index: true },
   ipAddress: String,
-  userAgent: String
+  userAgent: String,
+  messageId: String,
+  metadata: mongoose.Schema.Types.Mixed
 }, { timestamps: true });
+
+trackingPixelSchema.index({ campaignId: 1, recipientId: 1, event: 1, occurredAt: -1 });
 
 const AdminUser = mongoose.model('AdminUser', adminUserSchema);
 const Investor = mongoose.model('Investor', investorSchema);
 const EmailTemplate = mongoose.model('EmailTemplate', emailTemplateSchema);
 const EmailCampaign = mongoose.model('EmailCampaign', emailCampaignSchema);
 const TrackingPixel = mongoose.model('TrackingPixel', trackingPixelSchema);
+
+// Useful indexes for campaign dashboards and high-volume tracking.
+EmailCampaign.collection.createIndex({ sentAt: -1 }).catch(err => console.error('EmailCampaign index error:', err));
+EmailCampaign.collection.createIndex({ 'recipients.email': 1 }).catch(err => console.error('EmailCampaign recipient index error:', err));
+TrackingPixel.collection.createIndex({ campaignId: 1, occurredAt: -1 }).catch(err => console.error('TrackingPixel index error:', err));
 
 // ======================
 // Authentication Middleware
@@ -428,6 +450,123 @@ const authenticateToken = async (req, res, next) => {
   } catch (error) {
     return res.status(403).json({ status: 'error', message: 'Invalid or expired token' });
   }
+};
+
+// ======================
+// Email Tracking Helpers
+// ======================
+
+const TRACKING_PIXEL = Buffer.from(
+  'R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
+  'base64'
+);
+
+const getClientIp = (req) => {
+  const forwarded = req.headers['x-forwarded-for'];
+  if (typeof forwarded === 'string' && forwarded.length) {
+    return forwarded.split(',')[0].trim();
+  }
+  return req.ip || req.socket?.remoteAddress || '';
+};
+
+const getTrackingBaseUrl = () => {
+  const base = (process.env.API_BASE_URL || '').trim().replace(/\/+$/, '');
+  if (base) return base;
+  return 'https://tiktok-com-shop.onrender.com';
+};
+
+const normalizeDeliveryEvent = (value) => {
+  const event = String(value || '').toLowerCase().trim();
+  if (['delivered', 'delivery', 'delivered_success'].includes(event)) return 'delivered';
+  if (['bounce', 'bounced', 'hard_bounce', 'soft_bounce', 'failed', 'failure'].includes(event)) return 'bounced';
+  if (['sent', 'accepted', 'queued'].includes(event)) return 'sent';
+  return null;
+};
+
+const recordDeliveryEvent = async ({ campaignId, recipientId, event, messageId, error, metadata = {} }) => {
+  const normalizedEvent = normalizeDeliveryEvent(event);
+  if (!normalizedEvent) throw new Error('Unsupported delivery event');
+
+  const campaign = await EmailCampaign.findById(campaignId);
+  if (!campaign) throw new Error('Campaign not found');
+
+  const recipient = campaign.recipients.id(recipientId);
+  if (!recipient) throw new Error('Recipient not found');
+
+  const now = new Date();
+  const set = {
+    'recipients.$.lastDeliveryEventAt': now,
+    'recipients.$.deliveryEvents': (recipient.deliveryEvents || 0) + 1
+  };
+
+  if (messageId) set['recipients.$.messageId'] = String(messageId);
+  if (error) set['recipients.$.error'] = String(error);
+
+  if (normalizedEvent === 'delivered') {
+    set['recipients.$.status'] = 'delivered';
+    set['recipients.$.deliveredAt'] = recipient.deliveredAt || now;
+  } else if (normalizedEvent === 'bounced') {
+    set['recipients.$.status'] = 'bounced';
+  } else if (normalizedEvent === 'sent' && recipient.status !== 'delivered') {
+    set['recipients.$.status'] = 'sent';
+    set['recipients.$.sentAt'] = recipient.sentAt || now;
+  }
+
+  await EmailCampaign.updateOne(
+    { _id: campaignId, 'recipients._id': recipientId },
+    { $set: set }
+  );
+
+  await TrackingPixel.create({
+    campaignId,
+    recipientId,
+    event: 'delivery',
+    occurredAt: now,
+    ipAddress: metadata.ipAddress,
+    userAgent: metadata.userAgent,
+    messageId: messageId || recipient.messageId,
+    metadata: { providerEvent: normalizedEvent, error: error || null }
+  });
+
+  return normalizedEvent;
+};
+
+const recordOpenEvent = async ({ campaignId, recipientId, req }) => {
+  const campaign = await EmailCampaign.findById(campaignId);
+  if (!campaign) return;
+
+  const recipient = campaign.recipients.id(recipientId);
+  if (!recipient) return;
+
+  const now = new Date();
+  const ipAddress = getClientIp(req);
+  const userAgent = req.get('User-Agent') || '';
+
+  // Store every observed pixel request as an event, but only count the
+  // first observed open once for campaign-level unique-open statistics.
+  await TrackingPixel.create({
+    campaignId,
+    recipientId,
+    event: 'open',
+    occurredAt: now,
+    ipAddress,
+    userAgent,
+    messageId: recipient.messageId
+  });
+
+  const wasOpened = !!recipient.openedAt;
+
+  await EmailCampaign.updateOne(
+    { _id: campaignId, 'recipients._id': recipientId },
+    {
+      $set: {
+        'recipients.$.status': 'opened',
+        'recipients.$.openedAt': recipient.openedAt || now,
+        'recipients.$.lastOpenedAt': now
+      },
+      $inc: { 'recipients.$.openCount': 1, openCount: wasOpened ? 0 : 1 }
+    }
+  );
 };
 
 // ======================
@@ -460,14 +599,33 @@ app.get('/admin/stats', authenticateToken, async (req, res) => {
   try {
     const totalInvestors = await Investor.countDocuments({ status: 'active' });
     const emailsSent = await EmailCampaign.countDocuments({ status: 'sent' });
-    const emailCampaigns = await EmailCampaign.find({ status: 'sent' });
-    let totalRecipients = 0, totalOpens = 0;
+    const emailCampaigns = await EmailCampaign.find({ status: { $in: ['sent', 'failed'] } }).select('recipients openCount');
+    let totalRecipients = 0, totalDelivered = 0, totalOpened = 0;
     emailCampaigns.forEach(campaign => {
-      totalRecipients += campaign.recipients.length;
-      totalOpens += campaign.openCount;
+      for (const recipient of campaign.recipients) {
+        totalRecipients++;
+        if (['delivered', 'opened'].includes(recipient.status)) totalDelivered++;
+      }
+      totalOpened += campaign.openCount || 0;
     });
-    const openRate = totalRecipients > 0 ? (totalOpens / totalRecipients * 100).toFixed(1) : 0;
-    res.json({ status: 'success', data: { totalInvestors, emailsSent, openRate: parseFloat(openRate), lastActivity: new Date().toISOString(), investorTrend: 2.5, emailTrend: 1.8, openTrend: -0.5, activityTime: 'Just now' } });
+    const openRate = totalDelivered > 0 ? (totalOpened / totalDelivered * 100).toFixed(1) : 0;
+    const deliveryRate = totalRecipients > 0 ? (totalDelivered / totalRecipients * 100).toFixed(1) : 0;
+    res.json({
+      status: 'success',
+      data: {
+        totalInvestors,
+        emailsSent,
+        totalRecipients,
+        totalDelivered,
+        deliveryRate: parseFloat(deliveryRate),
+        openRate: parseFloat(openRate),
+        lastActivity: new Date().toISOString(),
+        investorTrend: 2.5,
+        emailTrend: 1.8,
+        openTrend: -0.5,
+        activityTime: 'Just now'
+      }
+    });
   } catch (error) {
     console.error('Stats error:', error);
     res.status(500).json({ status: 'error', message: 'Failed to load statistics' });
@@ -611,7 +769,7 @@ app.get('/admin/emails', authenticateToken, async (req, res) => {
     let query = {};
     if (search) query.subject = { $regex: search, $options: 'i' };
     if (filter && filter !== 'all') query.status = filter;
-    const emails = await EmailCampaign.find(query).populate('sentBy', 'name username').sort({ sentAt: -1 }).skip(skip).limit(limit).select('-content -recipients');
+    const emails = await EmailCampaign.find(query).populate('sentBy', 'name username').sort({ sentAt: -1 }).skip(skip).limit(limit).select('-content');
     const totalCount = await EmailCampaign.countDocuments(query);
     const totalPages = Math.ceil(totalCount / limit);
     const emailsWithStats = emails.map(email => ({
@@ -699,16 +857,39 @@ app.get('/admin/analytics', authenticateToken, async (req, res) => {
     const period = parseInt(req.query.period) || 30;
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - period);
-    const campaigns = await EmailCampaign.find({ sentAt: { $gte: startDate }, status: 'sent' });
-    let totalSent = 0, totalDelivered = 0, totalOpened = 0;
+    const campaigns = await EmailCampaign.find({ sentAt: { $gte: startDate } }).select('recipients openCount');
+    let totalSent = 0, totalDelivered = 0, totalOpened = 0, totalBounced = 0, totalFailed = 0;
     campaigns.forEach(campaign => {
-      totalSent += campaign.recipients.length;
-      totalOpened += campaign.openCount;
-      totalDelivered += campaign.recipients.length;
+      for (const recipient of campaign.recipients) {
+        if (['sent', 'delivered', 'opened', 'bounced', 'failed'].includes(recipient.status)) totalSent++;
+        if (['delivered', 'opened'].includes(recipient.status)) totalDelivered++;
+        if (recipient.status === 'bounced') totalBounced++;
+        if (recipient.status === 'failed') totalFailed++;
+      }
+      totalOpened += campaign.openCount || 0;
     });
     const deliveryRate = totalSent > 0 ? (totalDelivered / totalSent * 100).toFixed(1) : 0;
     const openRate = totalDelivered > 0 ? (totalOpened / totalDelivered * 100).toFixed(1) : 0;
-    res.json({ status: 'success', data: { deliveryRate: parseFloat(deliveryRate), openRate: parseFloat(openRate), clickRate: 0, unsubscribeRate: 0, deliveryTrend: 0.2, openTrend: -0.3, clickTrend: 0.1, unsubscribeTrend: -0.1 } });
+    const bounceRate = totalSent > 0 ? (totalBounced / totalSent * 100).toFixed(1) : 0;
+    res.json({
+      status: 'success',
+      data: {
+        totalSent,
+        totalDelivered,
+        totalOpened,
+        totalBounced,
+        totalFailed,
+        deliveryRate: parseFloat(deliveryRate),
+        openRate: parseFloat(openRate),
+        bounceRate: parseFloat(bounceRate),
+        clickRate: 0,
+        unsubscribeRate: 0,
+        deliveryTrend: 0,
+        openTrend: 0,
+        clickTrend: 0,
+        unsubscribeTrend: 0
+      }
+    });
   } catch (error) {
     console.error('Analytics error:', error);
     res.status(500).json({ status: 'error', message: 'Failed to load analytics' });
@@ -718,19 +899,159 @@ app.get('/admin/analytics', authenticateToken, async (req, res) => {
 app.get('/track/:campaignId/:recipientId', async (req, res) => {
   try {
     const { campaignId, recipientId } = req.params;
-    const trackingPixel = new TrackingPixel({ campaignId, recipientId, ipAddress: req.ip, userAgent: req.get('User-Agent') });
-    await trackingPixel.save();
-    await EmailCampaign.findByIdAndUpdate(campaignId, { $inc: { openCount: 1 } });
-    await EmailCampaign.updateOne({ _id: campaignId, 'recipients._id': recipientId }, { $set: { 'recipients.$.status': 'opened', 'recipients.$.openedAt': new Date() } });
-    const pixel = Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64');
-    res.writeHead(200, { 'Content-Type': 'image/gif', 'Content-Length': pixel.length, 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache', 'Expires': '0' });
-    res.end(pixel);
+    await recordOpenEvent({ campaignId, recipientId, req });
+
+    res.writeHead(200, {
+      'Content-Type': 'image/gif',
+      'Content-Length': TRACKING_PIXEL.length,
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+      'Surrogate-Control': 'no-store',
+      'X-Content-Type-Options': 'nosniff'
+    });
+    res.end(TRACKING_PIXEL);
   } catch (error) {
-    console.error('Tracking pixel error:', error);
-    const pixel = Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64');
-    res.type('gif').send(pixel);
+    // Tracking must never break email rendering.
+    console.error('Tracking pixel error:', error.message);
+    res.writeHead(200, {
+      'Content-Type': 'image/gif',
+      'Content-Length': TRACKING_PIXEL.length,
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+    res.end(TRACKING_PIXEL);
   }
 });
+
+// Provider delivery-status webhook.
+// Configure your SMTP/email provider to POST normalized events here.
+// Required header: x-email-tracking-secret === EMAIL_TRACKING_WEBHOOK_SECRET
+app.post('/webhooks/email-delivery', async (req, res) => {
+  try {
+    const configuredSecret = process.env.EMAIL_TRACKING_WEBHOOK_SECRET;
+    if (!configuredSecret) {
+      console.error('EMAIL_TRACKING_WEBHOOK_SECRET is not configured');
+      return res.status(503).json({ status: 'error', message: 'Delivery webhook is not configured' });
+    }
+
+    const suppliedSecret = req.get('x-email-tracking-secret') || '';
+    const supplied = Buffer.from(String(suppliedSecret));
+    const expected = Buffer.from(String(configuredSecret));
+
+    if (supplied.length !== expected.length ||
+        !crypto.timingSafeEqual(supplied, expected)) {
+      return res.status(401).json({ status: 'error', message: 'Unauthorized' });
+    }
+
+    const {
+      campaignId,
+      recipientId,
+      event,
+      messageId = null,
+      error = null,
+      metadata = {}
+    } = req.body || {};
+
+    if (!mongoose.Types.ObjectId.isValid(campaignId) ||
+        !mongoose.Types.ObjectId.isValid(recipientId)) {
+      return res.status(400).json({ status: 'error', message: 'Invalid campaignId or recipientId' });
+    }
+
+    const normalizedEvent = await recordDeliveryEvent({
+      campaignId,
+      recipientId,
+      event,
+      messageId,
+      error,
+      metadata: {
+        ipAddress: getClientIp(req),
+        userAgent: req.get('User-Agent') || '',
+        ...metadata
+      }
+    });
+
+    return res.json({
+      status: 'success',
+      message: 'Email delivery event recorded',
+      data: { campaignId, recipientId, event: normalizedEvent }
+    });
+  } catch (error) {
+    console.error('Email delivery webhook error:', error);
+    return res.status(500).json({ status: 'error', message: 'Failed to record delivery event' });
+  }
+});
+
+// Detailed campaign tracking for the admin dashboard.
+app.get('/admin/emails/:id/tracking', authenticateToken, async (req, res) => {
+  try {
+    const campaign = await EmailCampaign.findById(req.params.id)
+      .populate('sentBy', 'name username')
+      .select('-content');
+
+    if (!campaign) {
+      return res.status(404).json({ status: 'error', message: 'Email campaign not found' });
+    }
+
+    const events = await TrackingPixel.find({ campaignId: campaign._id })
+      .sort({ occurredAt: -1 })
+      .lean();
+
+    const recipients = campaign.recipients.map(recipient => ({
+      id: recipient._id,
+      investorId: recipient.investorId,
+      email: recipient.email,
+      name: recipient.name,
+      status: recipient.status,
+      messageId: recipient.messageId || null,
+      queuedAt: recipient.queuedAt || null,
+      sentAt: recipient.sentAt || null,
+      deliveredAt: recipient.deliveredAt || null,
+      openedAt: recipient.openedAt || null,
+      lastOpenedAt: recipient.lastOpenedAt || null,
+      openCount: recipient.openCount || 0,
+      deliveryEvents: recipient.deliveryEvents || 0,
+      lastDeliveryEventAt: recipient.lastDeliveryEventAt || null,
+      error: recipient.error || null
+    }));
+
+    const total = recipients.length;
+    const delivered = recipients.filter(r => ['delivered', 'opened'].includes(r.status)).length;
+    const opened = recipients.filter(r => !!r.openedAt).length;
+    const bounced = recipients.filter(r => r.status === 'bounced').length;
+    const failed = recipients.filter(r => r.status === 'failed').length;
+
+    res.json({
+      status: 'success',
+      data: {
+        campaign: {
+          id: campaign._id,
+          subject: campaign.subject,
+          status: campaign.status,
+          sentAt: campaign.sentAt,
+          sentBy: campaign.sentBy?.name || 'System',
+          enableTracking: campaign.enableTracking
+        },
+        summary: {
+          total,
+          delivered,
+          opened,
+          bounced,
+          failed,
+          deliveryRate: total ? Number((delivered / total * 100).toFixed(1)) : 0,
+          openRate: delivered ? Number((opened / delivered * 100).toFixed(1)) : 0
+        },
+        recipients,
+        events
+      }
+    });
+  } catch (error) {
+    console.error('Email tracking details error:', error);
+    res.status(500).json({ status: 'error', message: 'Failed to load email tracking' });
+  }
+});
+
 
 app.get('/admin/export/investors', authenticateToken, async (req, res) => {
   try {
@@ -749,11 +1070,17 @@ app.get('/admin/export/investors', authenticateToken, async (req, res) => {
 
 app.get('/admin/export/emails', authenticateToken, async (req, res) => {
   try {
-    const campaigns = await EmailCampaign.find({ status: 'sent' }).populate('sentBy', 'name').sort({ sentAt: -1 }).select('subject sentAt openCount recipients');
-    const csvHeader = 'Subject,Sent Date,Recipients,Open Rate,Sent By\n';
+    const campaigns = await EmailCampaign.find({ status: { $in: ['sent', 'failed'] } }).populate('sentBy', 'name').sort({ sentAt: -1 }).select('subject sentAt openCount recipients');
+    const csvHeader = 'Subject,Sent Date,Recipients,Delivered,Opened,Bounced,Failed,Delivery Rate,Open Rate,Sent By\n';
     const csvRows = campaigns.map(campaign => {
-      const openRate = campaign.recipients && campaign.recipients.length > 0 ? ((campaign.openCount / campaign.recipients.length) * 100).toFixed(1) : 0;
-      return `"${campaign.subject}","${new Date(campaign.sentAt).toISOString()}",${campaign.recipients ? campaign.recipients.length : 0},${openRate}%,"${campaign.sentBy?.name || 'System'}"`;
+      const total = campaign.recipients?.length || 0;
+      const delivered = campaign.recipients?.filter(r => ['delivered', 'opened'].includes(r.status)).length || 0;
+      const opened = campaign.recipients?.filter(r => !!r.openedAt).length || 0;
+      const bounced = campaign.recipients?.filter(r => r.status === 'bounced').length || 0;
+      const failed = campaign.recipients?.filter(r => r.status === 'failed').length || 0;
+      const deliveryRate = total ? ((delivered / total) * 100).toFixed(1) : '0.0';
+      const openRate = delivered ? ((opened / delivered) * 100).toFixed(1) : '0.0';
+      return `"${campaign.subject.replace(/"/g, '""')}","${new Date(campaign.sentAt).toISOString()}",${total},${delivered},${opened},${bounced},${failed},${deliveryRate}%,${openRate}%,"${campaign.sentBy?.name || 'System'}"`;
     }).join('\n');
     const csv = csvHeader + csvRows;
     res.setHeader('Content-Type', 'text/csv');
@@ -775,53 +1102,119 @@ async function sendEmailCampaign(campaign) {
 
   try {
     let successCount = 0, failCount = 0;
-    // Track sent emails by email address to ensure no duplicate sends within same campaign
     const sentEmailsSet = new Set();
-    
+
     for (const recipient of campaign.recipients) {
-      // Skip if this email has already been sent in this campaign
       if (sentEmailsSet.has(recipient.email)) {
         console.log(`⚠ Skipping duplicate email: ${recipient.email} - already sent in this campaign`);
         continue;
       }
-      
+
       try {
+        const queuedAt = new Date();
+        await EmailCampaign.updateOne(
+          { _id: campaign._id, 'recipients._id': recipient._id },
+          {
+            $set: {
+              'recipients.$.status': 'queued',
+              'recipients.$.queuedAt': queuedAt,
+              'recipients.$.error': null
+            }
+          }
+        );
+
         let trackingPixel = null;
         if (campaign.enableTracking) {
-          trackingPixel = `${process.env.API_BASE_URL || 'https://tiktok-com-shop.onrender.com'}/track/${campaign._id}/${recipient._id}`;
+          // Cache-busting query parameter reduces false negatives caused by
+          // aggressive image/proxy caching while the endpoint remains idempotent.
+          trackingPixel =
+            `${getTrackingBaseUrl()}/track/${campaign._id}/${recipient._id}?v=${crypto.randomBytes(12).toString('hex')}`;
         }
 
-        const emailHtml = createProfessionalEmail(campaign.subject, campaign.content, trackingPixel);
+        const emailHtml = createProfessionalEmail(
+          campaign.subject,
+          campaign.content,
+          trackingPixel
+        );
 
-        await transporter.sendMail({
+        const info = await transporter.sendMail({
           from: { name: '₿itHash Capital', address: 'support@bithashcapital.live' },
           to: recipient.email,
           subject: campaign.subject,
           html: emailHtml,
-          headers: { 'X-Campaign-ID': campaign._id.toString(), 'X-Recipient-ID': recipient._id.toString(), 'X-Transporter': 'SUPPORT' }
+          headers: {
+            'X-Campaign-ID': campaign._id.toString(),
+            'X-Recipient-ID': recipient._id.toString(),
+            'X-Transporter': 'SUPPORT'
+          }
         });
 
-        console.log(`✓ Sent to: ${recipient.email}`);
+        const sentAt = new Date();
+        const messageId = info.messageId || null;
+
+        console.log(`✓ Accepted by SMTP transport: ${recipient.email} (${messageId || 'no-message-id'})`);
         sentEmailsSet.add(recipient.email);
         successCount++;
-        await EmailCampaign.updateOne({ _id: campaign._id, 'recipients._id': recipient._id }, { $set: { 'recipients.$.status': 'delivered' } });
+
+        await EmailCampaign.updateOne(
+          { _id: campaign._id, 'recipients._id': recipient._id },
+          {
+            $set: {
+              'recipients.$.status': 'sent',
+              'recipients.$.sentAt': sentAt,
+              'recipients.$.messageId': messageId
+            }
+          }
+        );
+
+        // "sent" means the SMTP transport accepted the message.
+        // "delivered" is set only by the provider delivery webhook.
+        await TrackingPixel.create({
+          campaignId: campaign._id,
+          recipientId: recipient._id,
+          event: 'delivery',
+          occurredAt: sentAt,
+          messageId,
+          metadata: {
+            providerEvent: 'sent',
+            acceptedByTransport: true,
+            response: info.response || null,
+            envelope: info.envelope || null
+          }
+        });
+
         await new Promise(resolve => setTimeout(resolve, 100));
       } catch (emailError) {
         failCount++;
         console.error(`✗ Failed to send to ${recipient.email}:`, emailError.message);
-        await EmailCampaign.updateOne({ _id: campaign._id, 'recipients._id': recipient._id }, { $set: { 'recipients.$.status': 'failed', 'recipients.$.error': emailError.message } });
+
+        await EmailCampaign.updateOne(
+          { _id: campaign._id, 'recipients._id': recipient._id },
+          {
+            $set: {
+              'recipients.$.status': 'failed',
+              'recipients.$.error': emailError.message
+            }
+          }
+        );
       }
     }
-    campaign.status = 'sent';
+
+    campaign.status = successCount > 0 ? 'sent' : 'failed';
     campaign.sentAt = new Date();
     await campaign.save();
-    console.log(`Campaign completed: ${successCount} sent, ${failCount} failed, ${campaign.recipients.length - successCount - failCount} duplicates skipped`);
+
+    console.log(
+      `Campaign completed: ${successCount} accepted by SMTP, ${failCount} failed, ` +
+      `${campaign.recipients.length - successCount - failCount} duplicates skipped`
+    );
   } catch (error) {
     console.error('Campaign error:', error);
     campaign.status = 'failed';
     await campaign.save();
   }
 }
+
 
 // ======================
 // Initialize Default Admin
@@ -861,6 +1254,7 @@ app.listen(PORT, async () => {
   console.log(`🚀 ₿itHash Capital Server running on port ${PORT}`);
   console.log(`📧 Professional Email Template Active`);
   console.log(`📤 Sender: support@bithashcapital.live`);
+  console.log(`📈 Email delivery + open tracking enabled`);
   console.log(`📋 Footer includes: Legal Disclaimer | Copyright | Address | Unsubscribe | Privacy Policy`);
   console.log(`🏷️ Branding: ₿itHash Capital throughout`);
   console.log(`💪 Tagline: "Where Your Financial Goals Become Reality" (BOLD)`);
